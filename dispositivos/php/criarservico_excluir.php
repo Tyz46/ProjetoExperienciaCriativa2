@@ -9,7 +9,7 @@
 
     if(isset($_GET['id'])){
         $id = $_GET['id'];
-        $stmt = $conexao->prepare("DELETE FROM dispositivo WHERE id = ?"); // prepara a query
+        $stmt = $conexao->prepare("DELETE FROM servico WHERE id = ?"); // prepara a query
         $stmt->bind_param("i",$id);
         $stmt->execute(); // executa a query
 
