@@ -12,5 +12,5 @@ CREATE TABLE usuario(
 CREATE TABLE servico(
 	id INT PRIMARY KEY AUTO_INCREMENT,
     nome VARCHAR(50),
-    tipo VARCHAR(255)
+    tipo VARCHAR(50)
 );

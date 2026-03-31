@@ -13,25 +13,32 @@
     <nav class="navbar navbar-expand-sm bg-white shadow-sm">
         <div class="container-fluid">
             <a class="navbar-brand text-success fw-bold" href="#">ConsertaJá</a>
-            <ul class="navbar-nav w-100 d-flex justify-content-between align-items-center">
-                <div class="d-flex">
+            
+            <div class="collapse navbar-collapse" id="mynavbar">
+                <ul class="navbar-nav me-auto">
                     <li class="nav-item">
                         <a class="nav-link text-secondary fw-semibold" href="../html/">Home</a>
                     </li>
-                    <div class="dropdown">
-                        <button type="button" class="nav-link text-secondary fw-semibold dropdown-toggle" data-bs-toggle="dropdown">
+                    <li class="nav-item dropdown">
+                        <button type="button" class="nav-link text-secondary fw-semibold dropdown-toggle border-0 bg-transparent" data-bs-toggle="dropdown">
                             Serviços
                         </button>
                         <ul class="dropdown-menu">
                             <li><a class="dropdown-item" href="../../dispositivos/html/criarservico.html">Oferecendo</a></li>
                             <li><a class="dropdown-item" href="../../dispositivos/html/criarservico.html">Contratando</a></li>
                         </ul>
-                    </div>
-                </div>
-                <li class="nav-item">
-                    <button class="btn btn-danger px-3" id="logoff">Sair</button>
-                </li>
-            </ul>
+                    </li>
+                </ul>
+
+                <ul class="navbar-nav d-flex align-items-center">
+                    <li class="nav-item">
+                        <a class="nav-link text-secondary fw-semibold me-3" href="../html/">Perfil</a>
+                    </li>
+                    <li class="nav-item">
+                        <button class="btn btn-danger px-3" id="logoff">Sair</button>
+                    </li>
+                </ul>
+            </div>
         </div>
     </nav>
 
