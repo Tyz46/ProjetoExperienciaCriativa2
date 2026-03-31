@@ -16,9 +16,7 @@ async function buscarDados(id){
         alert("Sucesso! " + resposta.mensagem);
         var reg = resposta.data[0];
         document.getElementById("nome").value = reg.nome;
-        document.getElementById("potencia").value = reg.potencia;
         document.getElementById("tipo").value = reg.tipo;
-        document.getElementById("data_inst").value = reg.data_inst;
         document.getElementById("id").value = id;
     }else{
         alert("ERRO! " + resposta.mensagem);
@@ -35,16 +33,12 @@ document.getElementById('voltar').addEventListener('click', () => {
 
 async function alterar(){
     var nome    = document.getElementById("nome").value;
-    var potencia = document.getElementById("potencia").value;
     var tipo   = document.getElementById("tipo").value;
-    var data_inst   = document.getElementById("data_inst").value;
     var id      = document.getElementById("id").value;
 
     const fd = new FormData();
     fd.append('nome',nome);
-    fd.append('potencia',potencia);
     fd.append('tipo',tipo);
-    fd.append('data_inst',data_inst);
 
     const retorno = await fetch("../php/criarservico_alterar.php?id="+id, {
         method: "POST",
