@@ -1,0 +1,16 @@
+CREATE DATABASE pf;
+USE pf;
+
+CREATE TABLE usuario(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50),
+    usuario VARCHAR(50),
+    senha VARCHAR(255),
+    tipo TINYINT 
+);
+
+CREATE TABLE servico(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50),
+    tipo VARCHAR(255)
+);
