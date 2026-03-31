@@ -14,10 +14,9 @@
         $nome       = $_POST['nome'];
         $usuario    = $_POST['usuario'];
         $senha      = $_POST['senha'];
-        $tipo      = $_POST['tipo'];
         
-        $stmt = $conexao->prepare("UPDATE usuario SET nome = ?, usuario = ?, senha = ?, tipo = ? WHERE id = ?"); // prepara a query
-        $stmt->bind_param("sssii",$nome,$usuario,$senha,$tipo,$id);
+        $stmt = $conexao->prepare("UPDATE usuario SET nome = ?, usuario = ?, senha = ? WHERE id = ?"); // prepara a query
+        $stmt->bind_param("sssi",$nome,$usuario,$senha,$id);
         $stmt->execute(); // executa a query
 
         if($stmt->affected_rows > 0){

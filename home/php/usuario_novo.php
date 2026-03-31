@@ -11,10 +11,9 @@
     $nome       = $_POST['nome'];
     $usuario    = $_POST['usuario'];
     $senha      = $_POST['senha'];
-    $tipo      = $_POST['tipo'];
     
-    $stmt = $conexao->prepare("INSERT INTO usuario(nome,usuario,senha,tipo) VALUES (?,?,?,?)"); // prepara a query
-    $stmt->bind_param("sssi",$nome,$usuario,$senha,$tipo);
+    $stmt = $conexao->prepare("INSERT INTO usuario(nome,usuario,senha) VALUES (?,?,?)"); // prepara a query
+    $stmt->bind_param("sss",$nome,$usuario,$senha);
     $stmt->execute(); // executa a query
 
     if($stmt->affected_rows > 0){
