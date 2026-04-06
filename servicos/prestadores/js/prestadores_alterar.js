@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 async function buscarDados(id){
-    const retorno = await fetch("../php/criarservico_get.php?id="+id);
+    const retorno = await fetch("../php/prestadores_get.php?id="+id);
     const resposta = await retorno.json();
     if(resposta.status == "ok"){
         alert("Sucesso! " + resposta.mensagem);
@@ -28,7 +28,7 @@ document.getElementById("enviar").addEventListener('click', function(){
 });
 
 document.getElementById('voltar').addEventListener('click', () => {
-    window.location.href = '../html/criarservico.html';
+    window.location.href = '../html/prestador.html';
 });
 
 async function alterar(){
@@ -40,14 +40,14 @@ async function alterar(){
     fd.append('nome',nome);
     fd.append('tipo',tipo);
 
-    const retorno = await fetch("../php/criarservico_alterar.php?id="+id, {
+    const retorno = await fetch("../php/prestadores_alterar.php?id="+id, {
         method: "POST",
         body: fd
     });
     const resposta = await retorno.json();
     if(resposta.status == "ok"){
         alert("Sucesso! " + resposta.mensagem);
-        window.location.href = '../html/criarservico.html'
+        window.location.href = '../html/prestador.html'
     }else{
         alert("ERRO! " + resposta.mensagem);
     }

@@ -4,24 +4,24 @@ document.addEventListener("DOMContentLoaded", () => { // Espera documento carreg
 });
 
 document.getElementById('novo').addEventListener('click', () => {
-    window.location.href = '../html/criarservico_novo.html';
+    window.location.href = '../html/contratante_novo.html';
 });
 document.getElementById('logoff').addEventListener('click', () => {
     logoff();
 });
 
 async function logoff(){
-    const retorno = await fetch('../../home/php/usuario_logoff.php');
+    const retorno = await fetch('../../../home/php/usuario_logoff.php');
     const resposta = await retorno.json();
     if(resposta.status == 'ok'){
-        window.location.href = '../../home/html/login.html';
+        window.location.href = '../../../home/html/login.html';
     }else{
         alert("Falha ao efetuar Login.");
     }
 }
 
 async function carregarDados() {
-    const retorno = await fetch("../php/criarservico_get.php");
+    const retorno = await fetch("../php/contratantes_get.php");
     const resposta = await retorno.json();
 
     if (resposta.status == 'ok') {
@@ -63,7 +63,7 @@ async function carregarDados() {
 }
 
 async function excluir(id) {
-    const retorno = await fetch("../php/criarservico_excluir.php?id=" + id);
+    const retorno = await fetch("../php/contratantes_excluir.php?id=" + id);
     const resposta = await retorno.json();
     if (resposta.status == 'ok') {
         alert(resposta.mensagem);

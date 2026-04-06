@@ -7,7 +7,7 @@ document.getElementById("enviar").addEventListener('click', function(){
 });
 
 document.getElementById('voltar').addEventListener('click', () => {
-    window.location.href = '../html/criarservico.html';
+    window.location.href = '../html/prestador.html';
 });
 
 async function novo(){
@@ -18,14 +18,14 @@ async function novo(){
     fd.append('nome',nome);
     fd.append('tipo',tipo);
 
-    const retorno = await fetch("../php/criarservico_novo.php", {
+    const retorno = await fetch("../php/prestadores_novo.php", {
         method: "POST",
         body: fd
     });
     const resposta = await retorno.json();
     if(resposta.status == "ok"){
         alert("Sucesso! " + resposta.mensagem);
-        window.location.href = "../html/criarservico.html";
+        window.location.href = "../html/prestador.html";
     }else{
         alert("ERRO! " + resposta.mensagem);
     }
