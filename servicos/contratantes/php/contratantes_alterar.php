@@ -11,11 +11,15 @@
         $id = $_GET['id'];
         
         // As variáveis que eu ireir receber por $_POST;
-        $nome       = $_POST['nome'];
+        $id        = $_POST['id'];
+        $nome      = $_POST['nome'];
         $tipo      = $_POST['tipo'];
+        $descricao = $_POST['descricao'];
+        $preco     = $_POST['preco'];
+        $data_inst = $_POST['data_inst'];
         
-        $stmt = $conexao->prepare("UPDATE servico SET nome = ?, tipo = ? WHERE id = ?"); // prepara a query
-        $stmt->bind_param("ssi",$nome,$tipo,$id);
+        $stmt = $conexao->prepare("UPDATE servico SET nome = ?, tipo = ?, descricao = ?, preco = ?, data_inst = ? WHERE id = ?"); // prepara a query
+        $stmt->bind_param("sssssi", $nome, $tipo, $descricao, $preco, $data_inst, $id);
         $stmt->execute(); // executa a query
 
         if($stmt->affected_rows > 0){

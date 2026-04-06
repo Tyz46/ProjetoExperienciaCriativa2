@@ -8,11 +8,14 @@
     ];
 
     // As variáveis que eu ireir receber por $_POST;
-    $nome       = $_POST['nome'];
+    $nome      = $_POST['nome'];
     $tipo      = $_POST['tipo'];
-    
-    $stmt = $conexao->prepare("INSERT INTO servico(nome,tipo) VALUES (?,?)"); // prepara a query
-    $stmt->bind_param("ss",$nome,$tipo);
+    $descricao = $_POST['descricao'];
+    $orcamento = $_POST['orcamento'];
+    $data      = $_POST['data_pub'];
+
+    $stmt = $conexao->prepare("INSERT INTO busca (nome_busca, tipo, descricao, orcamento, data_publicacao) VALUES (?, ?, ?, ?, ?)");
+    $stmt->bind_param("sssss", $nome, $tipo, $descricao, $orcamento, $data);
     $stmt->execute(); // executa a query
 
     if($stmt->affected_rows > 0){

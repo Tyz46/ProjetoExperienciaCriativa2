@@ -32,13 +32,19 @@ document.getElementById('voltar').addEventListener('click', () => {
 });
 
 async function alterar(){
-    var nome    = document.getElementById("nome").value;
-    var tipo   = document.getElementById("tipo").value;
+    var name    = document.getElementById("name").value;
+    var type  = document.getElementById("type").value;
+    var descricion  = document.getElementById("descricion").value;
+    var data_pub     = document.getElementById("data_pub").value;
     var id      = document.getElementById("id").value;
+    var orcamento = document.getElementById("orcamento").value;
 
     const fd = new FormData();
-    fd.append('nome',nome);
-    fd.append('tipo',tipo);
+    fd.append('name', name);
+    fd.append('type', type);
+    fd.append('descricion', descricion);
+    fd.append('data_pub', data_pub);
+    fd.append('orcamento', orcamento);
 
     const retorno = await fetch("../php/prestadores_alterar.php?id="+id, {
         method: "POST",

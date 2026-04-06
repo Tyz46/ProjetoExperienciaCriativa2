@@ -34,11 +34,16 @@ document.getElementById('voltar').addEventListener('click', () => {
 async function alterar(){
     var nome    = document.getElementById("nome").value;
     var tipo   = document.getElementById("tipo").value;
+    var descricao  = document.getElementById("descricao").value;
+    var data_inst     = document.getElementById("data_inst").value;
     var id      = document.getElementById("id").value;
 
     const fd = new FormData();
     fd.append('nome',nome);
     fd.append('tipo',tipo);
+    fd.append('descicao',descricao);
+    fd.append('data_inst',data_inst);
+
 
     const retorno = await fetch("../php/contratantes_alterar.php?id="+id, {
         method: "POST",

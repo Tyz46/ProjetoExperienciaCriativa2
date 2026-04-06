@@ -27,29 +27,49 @@ async function carregarDados() {
     if (resposta.status == 'ok') {
         const registros = resposta.data;
 
+        
         var html = `
         <table class="table table-striped table-bordered align-middle shadow-sm">
             <thead class="table-success text-center">
                 <tr>
                     <th>Nome</th>
                     <th>Tipo</th>
+                    <th>Descrição</th>
+                    <th>Preço</th>
+                    <th>Data</th>
                     <th>Ações</th>
                 </tr>
             </thead>
             <tbody>
         `;
+       var html = `<div class="row row-cols-1 row-cols-md-3 g-4">`; 
 
         for (var i = 0; i < registros.length; i++) {
             var objeto = registros[i];
+        
             html += `
-                <tr>
-                    <td>${objeto.nome}</td>
-                    <td>${objeto.tipo}</td>
-                    <td class="text-center">
-                        <a href='criarservico_alterar.html?id=${objeto.id}' class="btn btn-warning btn-sm text-dark fw-semibold me-1">Alterar</a>
-                        <a href='#' onclick='excluir(${objeto.id})' class="btn btn-danger btn-sm fw-semibold">Excluir</a>
-                    </td>
-                </tr>`;
+                <div class="col">
+                    <div class="card h-100 shadow-sm border-success">
+                        <div class="card-body">
+                            <h5 class="card-title fw-bold text-success">${objeto.nome_busca}</h5>
+                            <h6 class="card-subtitle mb-3 text-muted">${objeto.tipo}</h6>
+                            
+                            <p class="card-text small" style="min-height: 40px;">
+                                ${objeto.descricao}
+                            </p>
+                            
+                            <div class="mb-3">
+                                <span class="d-block fw-bold text-dark">R$ ${objeto.orcamento}</span>
+                                <small class="text-muted">${objeto.data_publicacao}</small>
+                            </div>
+
+                            <div class="d-flex justify-content-between border-top pt-3">
+                                <a href='alterar.html?id=${objeto.id_busca}' class="btn btn-warning btn-sm text-dark fw-semibold">Alterar</a>
+                                <button onclick='excluir(${objeto.id_busca})' class="btn btn-danger btn-sm fw-semibold">Excluir</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
         }
 
         html += `

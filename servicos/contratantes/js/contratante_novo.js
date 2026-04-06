@@ -11,12 +11,18 @@ document.getElementById('voltar').addEventListener('click', () => {
 });
 
 async function novo(){
-    var nome    = document.getElementById("nome").value;
-    var tipo   = document.getElementById("tipo").value;
+    var nome      = document.getElementById("nome").value;
+    var tipo      = document.getElementById("tipo").value;
+    var preco     = document.getElementById("preco").value;
+    var descricao = document.getElementById("descricao").value;
+    var data_inst = document.getElementById("data_inst").value;
 
     const fd = new FormData();
-    fd.append('nome',nome);
-    fd.append('tipo',tipo);
+    fd.append('nome', nome);
+    fd.append('tipo', tipo);
+    fd.append('descricao', descricao);
+    fd.append('preco', preco);
+    fd.append('data_inst', data_inst);
 
     const retorno = await fetch("../php/contratantes_novo.php", {
         method: "POST",
