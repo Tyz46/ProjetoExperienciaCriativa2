@@ -9,7 +9,7 @@
 
     if(isset($_GET['id'])){
         $id = $_GET['id'];
-        $stmt = $conexao->prepare("DELETE FROM busca WHERE id_busca = ?"); // prepara a query
+        $stmt = $conexao->prepare("DELETE FROM prestador WHERE id = ?"); // prepara a query
         $stmt->bind_param("i",$id);
         $stmt->execute(); // executa a query
 

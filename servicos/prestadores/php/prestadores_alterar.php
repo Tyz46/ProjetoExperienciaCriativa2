@@ -11,17 +11,14 @@
         $id = $_GET['id'];
         
         // As variáveis que eu ireir receber por $_POST;
-        $id        = $_POST['id'];
-        $nome      = $_POST['nome'];
-        $tipo      = $_POST['tipo'];
-        $descricao = $_POST['descricao'];
-        $preco     = $_POST['preco'];
-        $data_inst = $_POST['data_inst'];
+        $nome       = $_POST['nome'];
+        $descricao  = $_POST['descricao'];
+        $preco      = $_POST['preco'];
+        $data_publicacao  = $_POST['data_publicacao'];
         
-        $stmt = $conexao->prepare("UPDATE busca SET nome = ?, tipo = ?, descricao = ?, orcamento = ?, data_inst = ? WHERE id = ?"); // prepara a query
-        $stmt->bind_param("sssssi", $nome, $tipo, $descricao, $orcamento, $data_inst, $id);
+        $stmt = $conexao->prepare("UPDATE prestador SET nome = ?, descricao = ?, preco = ?, data_publicacao = ? WHERE id = ?"); // prepara a query
+        $stmt->bind_param("ssssi",$nome,$descricao,$preco,$data_publicacao,$id);
         $stmt->execute(); // executa a query
-
 
         if($stmt->affected_rows > 0){
             $retorno = [

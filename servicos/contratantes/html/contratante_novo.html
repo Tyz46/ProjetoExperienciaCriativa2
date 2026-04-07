@@ -26,34 +26,23 @@
 
             <!-- FORMULÁRIO -->
             <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Nome:</label>
-                <input type="text" id="nome" class="form-control" placeholder="Digite o nome do serviço:">
-            </div>
-            <div class="mb-3">
-                <label for="tipo" class="form-label fw-semibold">Tipo:</label>
-                <select id="tipo" class="form-select">
-                    <option value="" selected disabled>Selecione um tipo de serviço:</option>
-                    <option value="Doméstico">Doméstico</option>
-                    <option value="Reforma">Reforma</option>
-                    <option value="Outros">Outros</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Preço (R$):</label>
-                <input type="number" step="0.01" id="preco" name="preco" class="form-control" placeholder="0.00" required>
-            </div>
-            <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Descrição:</label>
-                <input type="text" id="descricao" class="form-control" placeholder="Digite a descrição do serviço:">
-            </div>
-            <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Requisitos:</label>
-                <input type="text" id="requisitos" class="form-control" placeholder="Digite requisitos desejados:">
+                <label for="nome" class="form-label fw-semibold">Nome</label>
+                <input type="text" id="nome" class="form-control" placeholder="Digite o nome do serviço">
             </div>
 
-            <div class="mb-4">
-                <label for="data_inst" class="form-label fw-semibold">Data de publicação:</label>
-                <input type="date" id="data_inst" class="form-control" placeholder="AAAA-MM-DD">
+            <div class="mb-3">
+                <label for="descricao" class="form-label fw-semibold">Descrição</label>
+                <input type="text" id="descricao" class="form-control" placeholder="Que tipo de trabalho você está oferendo?">
+            </div>
+            
+            <div class="mb-3">
+                <label for="orcamento" class="form-label fw-semibold">Orçamento R$</label>
+                <input type="number" step="0.01" id="orcamento" class="form-control" placeholder="0.00" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="data_publicacao" class="form-label fw-semibold">Data de Publicação</label>
+                <input type="date" id="data_publicacao" class="form-control">
             </div>
 
             <!-- BOTÕES -->
@@ -68,9 +57,9 @@
     <footer class="bg-white border-top py-3 text-center">
         <p class="mb-1 text-secondary">© 2025 ConsertaJá. Todos os direitos reservados.</p>
         <div>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-facebook"></i>Facebook</a>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-instagram"></i>Instagram</a>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-linkedin"></i>Linkedin</a>
+            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-linkedin"></i></a>
         </div>
     </footer>
 

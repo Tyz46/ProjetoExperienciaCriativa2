@@ -12,10 +12,10 @@
     // 2ª Situação - RECEBENDO O ID por GET
     if(isset($_GET['id'])){
         $id = $_GET['id'];
-        $stmt = $conexao->prepare("SELECT * FROM busca WHERE id = ?"); // prepara a query
+        $stmt = $conexao->prepare("SELECT * FROM prestador WHERE id = ?"); // prepara a query
         $stmt->bind_param("i",$id);
     }else{
-        $stmt = $conexao->prepare("SELECT * FROM busca"); // prepara a query
+        $stmt = $conexao->prepare("SELECT * FROM prestador"); // prepara a query
     
     }
     $stmt->execute(); // executa a query

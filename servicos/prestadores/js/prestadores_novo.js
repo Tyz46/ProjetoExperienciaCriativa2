@@ -11,18 +11,16 @@ document.getElementById('voltar').addEventListener('click', () => {
 });
 
 async function novo(){
-    var name       = document.getElementById("name").value;
-    var type       = document.getElementById("type").value;
-    var orcamento  = document.getElementById("orcamento").value;
-    var descricion = document.getElementById("descricion").value;
-    var data_pub   = document.getElementById("data_pub").value;
-    
+    var nome    = document.getElementById("nome").value;
+    var descricao    = document.getElementById("descricao").value;
+    var preco    = document.getElementById("preco").value;
+    var data_publicacao   = document.getElementById("data_publicacao").value;
+
     const fd = new FormData();
-    fd.append('nome', name);
-    fd.append('tipo', type);
-    fd.append('descricao', descricion);
-    fd.append('orcamento', orcamento);
-    fd.append('data_pub', data_pub);
+    fd.append('nome',nome);
+    fd.append('descricao',descricao);
+    fd.append('preco',preco);
+    fd.append('data_publicacao',data_publicacao);
 
     const retorno = await fetch("../php/prestadores_novo.php", {
         method: "POST",

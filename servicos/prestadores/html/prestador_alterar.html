@@ -20,56 +20,48 @@
     <main class="d-flex justify-content-center align-items-center vh-100">
         <div class="card shadow-lg p-4" style="max-width: 500px; width: 100%;">
             <div class="text-center mb-4">
-                <h2 class="fw-bold text-success">Novo Serviço</h2>
-                <p class="text-muted">Preencha as informações para cadastrar um novo serviço</p>
+                <h2 class="fw-bold text-success">Alterar Serviço</h2>
+                <p class="text-muted">Atualize as informações do Serviço abaixo</p>
             </div>
 
             <!-- FORMULÁRIO -->
+            <input type="hidden" id="id">
+
             <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Nome:</label>
-                <input type="text" id="name" class="form-control" placeholder="Digite o nome do serviço:">
-            </div>
-            <div class="mb-3">
-                <label for="type" class="form-label fw-semibold">Tipo:</label>
-                <select id="type" class="form-select">
-                    <option value="" selected disabled>Selecione um tipo de serviço:</option>
-                    <option value="Doméstico">Doméstico</option>
-                    <option value="Reforma">Reforma</option>
-                    <option value="Outros">Outros</option>
-                </select>
-            </div>
-            <div class="mb-3">
-                <label class="form-label fw-bold">Orçamento (R$):</label>
-                <input type="number" step="0.01" id="orcamento" name="orcamento" class="form-control" placeholder="0.00" required>
-            </div>
-            <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Descrição:</label>
-                <input type="text" id="descricion" class="form-control" placeholder="Digite a descrição do serviço:">
-            </div>
-            <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Requisitos:</label>
-                <input type="text" id="requisito" class="form-control" placeholder="Digite seus requisitos e suas experiencias:">
+                <label for="nome" class="form-label fw-semibold">Nome</label>
+                <input type="text" id="nome" class="form-control" placeholder="Digite o nome do serviço">
             </div>
 
-            <div class="mb-4">
-                <label for="data_pub" class="form-label fw-semibold">Data de publicação:</label>
-                <input type="date" id="data_pub" class="form-control" placeholder="AAAA-MM-DD">
+            <div class="mb-3">
+                <label for="descricao" class="form-label fw-semibold">Descrição</label>
+                <input type="text" id="descricao" class="form-control" placeholder="Que tipo de trabalho você está oferendo?">
+            </div>
+            
+            <div class="mb-3">
+                <label for="preco" class="form-label fw-semibold">Preço R$</label>
+                <input type="number" id="preco" class="form-control" placeholder="0.00" required>
+            </div>
+
+            <div class="mb-3">
+                <label for="data_publicacao" class="form-label fw-semibold">Data de Publicação</label>
+                <input type="date" id="data_publicacao" class="form-control">
             </div>
 
             <!-- BOTÕES -->
             <div class="d-flex justify-content-between">
-                <button id="enviar" class="btn btn-success w-50 me-2 fw-semibold">Cadastrar</button>
+                <button id="enviar" class="btn btn-success w-50 me-2 fw-semibold">Salvar Alterações</button>
                 <button id="voltar" class="btn btn-danger w-50 fw-semibold">Voltar</button>
             </div>
         </div>
     </main>
+
     <!-- FOOTER -->
     <footer class="bg-white border-top py-3 text-center">
         <p class="mb-1 text-secondary">© 2025 ConsertaJá. Todos os direitos reservados.</p>
         <div>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-facebook"></i>Facebook</a>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-instagram"></i>Instagram</a>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-linkedin"></i>Linkedin</a>
+            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-facebook"></i></a>
+            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-instagram"></i></a>
+            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-linkedin"></i></a>
         </div>
     </footer>
 

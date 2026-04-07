@@ -11,20 +11,18 @@ CREATE TABLE usuario(
     tipo TINYINT 
 );
 
-CREATE TABLE servico (
-    id_servico INT PRIMARY KEY AUTO_INCREMENT,
-    nome_servico VARCHAR(100),
-    tipo VARCHAR(50),
-    descricao TEXT,
+CREATE TABLE prestador(
+	id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50),
+    descricao VARCHAR(200),
     preco DECIMAL(10,2),
-    data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+    data_publicacao VARCHAR(10)
 );
 
-CREATE TABLE busca (
-    id_busca INT PRIMARY KEY AUTO_INCREMENT,
-    nome_busca VARCHAR(100),
-    tipo VARCHAR(50),
-    descricao TEXT,
+CREATE TABLE contratante(
+    id INT PRIMARY KEY AUTO_INCREMENT,
+    nome VARCHAR(50),
+    descricao VARCHAR(200),
     orcamento DECIMAL(10,2),
-    data_publicacao TIMESTAMP DEFAULT CURRENT_TIMESTAMP
-);
+    data_publicacao VARCHAR(10)
+)

@@ -16,7 +16,9 @@ async function buscarDados(id){
         alert("Sucesso! " + resposta.mensagem);
         var reg = resposta.data[0];
         document.getElementById("nome").value = reg.nome;
-        document.getElementById("tipo").value = reg.tipo;
+        document.getElementById("descricao").value = reg.descricao;
+        document.getElementById("preco").value = reg.preco;
+        document.getElementById("data_publicacao").value = reg.data_publicacao;
         document.getElementById("id").value = id;
     }else{
         alert("ERRO! " + resposta.mensagem);
@@ -32,19 +34,17 @@ document.getElementById('voltar').addEventListener('click', () => {
 });
 
 async function alterar(){
-    var name    = document.getElementById("name").value;
-    var type  = document.getElementById("type").value;
-    var descricion  = document.getElementById("descricion").value;
-    var data_pub     = document.getElementById("data_pub").value;
+    var nome    = document.getElementById("nome").value;
+    var descricao    = document.getElementById("descricao").value;
+    var preco    = document.getElementById("preco").value;
+    var data_publicacao   = document.getElementById("data_publicacao").value;
     var id      = document.getElementById("id").value;
-    var orcamento = document.getElementById("orcamento").value;
 
     const fd = new FormData();
-    fd.append('name', name);
-    fd.append('type', type);
-    fd.append('descricion', descricion);
-    fd.append('data_pub', data_pub);
-    fd.append('orcamento', orcamento);
+    fd.append('nome',nome);
+    fd.append('descricao',descricao);
+    fd.append('preco',preco);
+    fd.append('data_publicacao',data_publicacao);
 
     const retorno = await fetch("../php/prestadores_alterar.php?id="+id, {
         method: "POST",

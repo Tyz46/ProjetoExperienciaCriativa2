@@ -16,7 +16,9 @@ async function buscarDados(id){
         alert("Sucesso! " + resposta.mensagem);
         var reg = resposta.data[0];
         document.getElementById("nome").value = reg.nome;
-        document.getElementById("tipo").value = reg.tipo;
+        document.getElementById("descricao").value = reg.descricao;
+        document.getElementById("orcamento").value = reg.orcamento;
+        document.getElementById("data_publicacao").value = reg.data_publicacao;
         document.getElementById("id").value = id;
     }else{
         alert("ERRO! " + resposta.mensagem);
@@ -33,19 +35,16 @@ document.getElementById('voltar').addEventListener('click', () => {
 
 async function alterar(){
     var nome    = document.getElementById("nome").value;
-    var tipo   = document.getElementById("tipo").value;
-    var descricao  = document.getElementById("descricao").value;
-    var requisitos  = document.getElementById("requisitos").value;
-    var data_inst     = document.getElementById("data_inst").value;
+    var descricao    = document.getElementById("descricao").value;
+    var orcamento    = document.getElementById("orcamento").value;
+    var data_publicacao   = document.getElementById("data_publicacao").value;
     var id      = document.getElementById("id").value;
 
     const fd = new FormData();
     fd.append('nome',nome);
-    fd.append('tipo',tipo);
-    fd.append('descicao',descricao);
-    fd.append('requisitos',requisitos);
-    fd.append('data_inst',data_inst);
-
+    fd.append('descricao',descricao);
+    fd.append('orcamento',orcamento);
+    fd.append('data_publicacao',data_publicacao);
 
     const retorno = await fetch("../php/contratantes_alterar.php?id="+id, {
         method: "POST",
