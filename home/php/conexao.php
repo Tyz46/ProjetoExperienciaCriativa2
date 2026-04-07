@@ -1,6 +1,6 @@
 <?php
 // Configuração para acesso ao MYSQL.
-$servidor = "127.0.0.1";
+$servidor = "localhost:3307";
 $usuario  = "root";
 $senha    = "";
 $banco    = "pf";
