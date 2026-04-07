@@ -34,6 +34,7 @@ async function carregarDados() {
                     <th>Nome</th>
                     <th>Tipo</th>
                     <th>Descrição</th>
+                    <th>Requisitos</th>
                     <th>Preço</th>
                     <th>Data</th>
                     <th>Ações</th>
@@ -54,6 +55,9 @@ async function carregarDados() {
                         
                         <p class="card-text small" style="min-height: 40px;">
                             ${objeto.descricao}
+                        </p>
+                        <p class="card-text small" style="min-height: 40px;">
+                            ${objeto.requisito}
                         </p>
                         
                         <div class="mb-3">

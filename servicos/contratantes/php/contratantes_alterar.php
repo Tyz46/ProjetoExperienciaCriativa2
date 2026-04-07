@@ -15,11 +15,12 @@
         $nome      = $_POST['nome'];
         $tipo      = $_POST['tipo'];
         $descricao = $_POST['descricao'];
+        $requisitos = $_POST['requisitos'];
         $preco     = $_POST['preco'];
         $data_inst = $_POST['data_inst'];
         
-        $stmt = $conexao->prepare("UPDATE servico SET nome = ?, tipo = ?, descricao = ?, preco = ?, data_inst = ? WHERE id = ?"); // prepara a query
-        $stmt->bind_param("sssssi", $nome, $tipo, $descricao, $preco, $data_inst, $id);
+        $stmt = $conexao->prepare("UPDATE servico SET nome = ?, tipo = ?, descricao = ?,requisitos = ?, preco = ?, data_inst = ? WHERE id = ?"); // prepara a query
+        $stmt->bind_param("ssssssi", $nome, $tipo, $descricao, $requisitos, $preco, $data_inst, $id);
         $stmt->execute(); // executa a query
 
         if($stmt->affected_rows > 0){

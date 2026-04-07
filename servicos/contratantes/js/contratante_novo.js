@@ -15,12 +15,14 @@ async function novo(){
     var tipo      = document.getElementById("tipo").value;
     var preco     = document.getElementById("preco").value;
     var descricao = document.getElementById("descricao").value;
+    var requisitos = document.getElementById("requisitos").value;
     var data_inst = document.getElementById("data_inst").value;
 
     const fd = new FormData();
     fd.append('nome', nome);
     fd.append('tipo', tipo);
     fd.append('descricao', descricao);
+    fd.append('requisitos', requisitos);
     fd.append('preco', preco);
     fd.append('data_inst', data_inst);
 
