@@ -30,11 +30,9 @@ async function novo() {
             body: fd
         });
 
-        // Pegamos a resposta como texto bruto primeiro
         const textoResposta = await retorno.text();
 
         try {
-            // Tentamos converter para JSON
             const resposta = JSON.parse(textoResposta);
 
             if (resposta.status === "ok") {
@@ -44,7 +42,6 @@ async function novo() {
                 alert("Aviso: " + resposta.mensagem);
             }
         } catch (erroJson) {
-            // Se não for JSON (PHP deu erro fatal), mostramos o erro real!
             console.error("Erro do Servidor:", textoResposta);
             alert("Erro no Servidor PHP:\n\n" + textoResposta);
         }
