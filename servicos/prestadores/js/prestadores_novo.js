@@ -16,6 +16,24 @@ async function novo(){
     var preco    = document.getElementById("preco").value;
     var data_publicacao   = document.getElementById("data_publicacao").value;
 
+    // Validação: verificar se algum campo está vazio
+    if (!nome.trim()) {
+        alert("O campo Nome não pode estar vazio.");
+        return;
+    }
+    if (!descricao.trim()) {
+        alert("O campo Descrição não pode estar vazio.");
+        return;
+    }
+    if (!preco.trim()) {
+        alert("O campo Preço não pode estar vazio.");
+        return;
+    }
+    if (!data_publicacao.trim()) {
+        alert("O campo Data de Publicação não pode estar vazio.");
+        return;
+    }
+
     const fd = new FormData();
     fd.append('nome',nome);
     fd.append('descricao',descricao);
