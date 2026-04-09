@@ -7,33 +7,42 @@
         'data'      => []  // efetivamente o retorno
     ];
 
+    // Vamos montar o SELECT
+    // 1ª Situação - SEM RECEBER O ID por GET
+    // 2ª Situação - RECEBENDO O ID por GET
     if(isset($_GET['id'])){
         $id = $_GET['id'];
-        $stmt = $conexao->prepare("DELETE FROM servico WHERE id = ?"); // prepara a query
+        $stmt = $conexao->prepare("SELECT * FROM servico WHERE id = ?"); // prepara a query
         $stmt->bind_param("i",$id);
-        $stmt->execute(); // executa a query
-
-        if($stmt->affected_rows > 0){
-            $retorno = [
-                'status'    => 'ok', // ok ou nok
-                'mensagem'  => 'Registro excluido com sucesso', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
-        }else{
-            $retorno = [
-                'status'    => 'nok', // ok ou nok
-                'mensagem'  => 'Não foi possível excluir o registro', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
+    }else{
+        $stmt = $conexao->prepare("SELECT * FROM servico"); // prepara a query
+    
+    }
+    $stmt->execute(); // executa a query
+    $resultado = $stmt->get_result(); // pega o resultado
+    
+    $tabela = []; // array para enviar para o Front
+    if($resultado->num_rows > 0){
+        // criar o laço de repetição para ler o resultado
+        while($linha = $resultado->fetch_assoc()){
+            $tabela[] = $linha;
         }
-        $stmt->close();    
+
+        $retorno = [
+            'status'    => 'ok', // ok ou nok
+            'mensagem'  => 'Registros encontrados', // mensagem de sucesso ou erro
+            'data'      => $tabela  // efetivamente o retorno
+        ];
     }else{
         $retorno = [
             'status'    => 'nok', // ok ou nok
-            'mensagem'  => 'Não foi possível excluir o registro SEM ID', // mensagem de sucesso ou erro
+            'mensagem'  => 'Nenhum registro encontrado', // mensagem de sucesso ou erro
             'data'      => []  // efetivamente o retorno
         ];
     }
+
+    $stmt->close();
     $conexao->close();
+
     header("Content-type:application/json;charset:utf-8");
     echo json_encode($retorno);
