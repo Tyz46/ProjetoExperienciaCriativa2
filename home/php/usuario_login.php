@@ -1,4 +1,5 @@
 <?php
+session_start();
 include_once('conexao.php');
 
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
@@ -25,7 +26,6 @@ if (empty($usuario) || empty($senha)) {
                 $tabela[] = $linha;
             }
 
-            session_start();
             $_SESSION['usuario'] = $tabela[0];
 
             $retorno['status'] = 'ok';

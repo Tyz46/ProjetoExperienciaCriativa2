@@ -1,74 +1,205 @@
-document.addEventListener("DOMContentLoaded", () => { // Espera documento carregar para executar função
-    valida_sessao();
-    carregarDados();
+let usuarioLogado = null;
+
+document.addEventListener("DOMContentLoaded", () => {
+    iniciarPagina();
 });
 
-document.getElementById('novo').addEventListener('click', () => {
-    window.location.href = '../html/prestador_novo.html';
+async function iniciarPagina() {
+    const sessao = await valida_sessao();
+    usuarioLogado = sessao.data;
+
+    aplicarPermissoes();
+    carregarDados();
+}
+
+document.getElementById("novo").addEventListener("click", () => {
+    if (!podeCriar()) {
+        alert("Apenas prestadores podem criar serviços nesta aba.");
+        return;
+    }
+
+    window.location.href = "../html/prestador_novo.html";
 });
-document.getElementById('logoff').addEventListener('click', () => {
+document.getElementById("logoff").addEventListener("click", () => {
     logoff();
 });
 
-async function logoff(){
-    const retorno = await fetch('../../../home/php/usuario_logoff.php');
+async function logoff() {
+    const retorno = await fetch("../../../home/php/usuario_logoff.php");
     const resposta = await retorno.json();
-    if(resposta.status == 'ok'){
-        window.location.href = '../../../home/html/login.html';
-    }else{
-        alert("Falha ao efetuar Login.");
+
+    if (resposta.status === "ok") {
+        window.location.href = "../../../home/html/login.html";
+    } else {
+        alert("Falha ao efetuar logoff.");
     }
 }
 
 async function carregarDados() {
-    const retorno = await fetch("../php/prestadores_get.php");
-    const resposta = await retorno.json();
+    const lista = document.getElementById("lista");
 
-    if (resposta.status == 'ok') {
-        const registros = resposta.data;
+    try {
+        const retorno = await fetch("../php/prestadores_get.php");
+        const resposta = await retorno.json();
 
-        var html = `
-        <table class="table table-striped table-bordered align-middle shadow-sm">
-            <thead class="table-success text-center">
-                <tr>
-                    <th>Nome</th>
-                    <th>Tipo</th>
-                    <th>Ações</th>
-                </tr>
-            </thead>
-            <tbody>
-        `;
-
-        for (var i = 0; i < registros.length; i++) {
-            var objeto = registros[i];
-            html += `
-                <tr>
-                    <td>${objeto.nome}</td>
-                    <td>${objeto.tipo}</td>
-                    <td class="text-center">
-                        <a href='criarservico_alterar.html?id=${objeto.id}' class="btn btn-warning btn-sm text-dark fw-semibold me-1">Alterar</a>
-                        <a href='#' onclick='excluir(${objeto.id})' class="btn btn-danger btn-sm fw-semibold">Excluir</a>
-                    </td>
-                </tr>`;
+        if (resposta.status !== "ok") {
+            lista.innerHTML = renderizarVazio();
+            return;
         }
 
-        html += `
-            </tbody>
-        </table>`;
+        const registros = resposta.data;
 
-        document.getElementById('lista').innerHTML = html;
-    } else {
-        alert('Erro: ' + resposta.mensagem);
+        if (registros.length === 0) {
+            lista.innerHTML = renderizarVazio();
+            return;
+        }
+
+        lista.innerHTML = registros.map(renderizarCardServico).join("");
+    } catch (erro) {
+        console.error(erro);
+        lista.innerHTML = renderizarVazio("Não foi possível carregar os serviços agora.");
     }
 }
 
 async function excluir(id) {
-    const retorno = await fetch("../php/prestadores_excluir.php?id=" + id);
+    if (!podeCriar()) {
+        alert("Apenas prestadores podem excluir serviços nesta aba.");
+        return;
+    }
+
+    const confirmar = confirm("Deseja realmente excluir este serviço?");
+    if (!confirmar) return;
+
+    const retorno = await fetch("../php/prestadores_excluir.php?id=" + id, {
+        credentials: "same-origin"
+    });
     const resposta = await retorno.json();
-    if (resposta.status == 'ok') {
+
+    if (resposta.status === "ok") {
         alert(resposta.mensagem);
-        window.location.reload();
+        carregarDados();
     } else {
         alert("Erro: " + resposta.mensagem);
     }
+}
+
+function renderizarCardServico(objeto) {
+    return `
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                ${renderizarFoto(objeto)}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <span class="service-badge">${escaparHtml(formatarCategoria(objeto.tipo))}</span>
+                        <span class="service-price">${formatarMoeda(objeto.valor)}</span>
+                    </div>
+
+                    <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
+                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
+
+                    <p class="mb-4">
+                        <i class="bi bi-geo-alt text-success me-1"></i>
+                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                    </p>
+
+                    ${renderizarAcoes(objeto)}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderizarFoto(objeto) {
+    const foto = obterPrimeiraFoto(objeto.foto);
+
+    if (!foto) {
+        return "";
+    }
+
+    return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do serviço">`;
+}
+
+function obterPrimeiraFoto(valor) {
+    if (!valor) {
+        return "";
+    }
+
+    try {
+        const fotos = JSON.parse(valor);
+        return Array.isArray(fotos) ? (fotos[0] || "") : "";
+    } catch (erro) {
+        return valor;
+    }
+}
+
+function renderizarAcoes(objeto) {
+    if (!podeGerenciarRegistro(objeto)) {
+        return "";
+    }
+
+    return `
+        <div class="mt-auto d-flex gap-2">
+            <a href="prestador_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
+            <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
+        </div>
+    `;
+}
+
+function renderizarVazio(mensagem = "Clique em Novo serviço para adicionar o primeiro.") {
+    return `
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
+                <h4 class="mb-2">Nenhum serviço cadastrado</h4>
+                <p class="mb-0">${mensagem}</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatarMoeda(valor) {
+    const numero = Number(valor);
+
+    if (Number.isNaN(numero) || numero <= 0) {
+        return "A negociar";
+    }
+
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    }).format(numero);
+}
+
+function formatarCategoria(categoria) {
+    const categorias = {
+        Eletrica: "Elétrica",
+        Informatica: "Informática"
+    };
+
+    return categorias[categoria] || categoria || "Sem categoria";
+}
+
+function aplicarPermissoes() {
+    const botaoNovo = document.getElementById("novo");
+
+    if (!podeCriar()) {
+        botaoNovo.classList.add("d-none");
+    }
+}
+
+function podeCriar() {
+    return usuarioLogado?.tipo === "prestador" || usuarioLogado?.tipo === "adm";
+}
+
+function podeGerenciarRegistro(objeto) {
+    return usuarioLogado?.tipo === "adm" || (
+        usuarioLogado?.tipo === "prestador" &&
+        Number(objeto.id_usuario) === Number(usuarioLogado?.id)
+    );
+}
+
+function escaparHtml(valor) {
+    const elemento = document.createElement("span");
+    elemento.textContent = valor;
+    return elemento.innerHTML;
 }

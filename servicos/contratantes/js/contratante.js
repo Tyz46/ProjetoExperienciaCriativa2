@@ -1,9 +1,23 @@
+let usuarioLogado = null;
+
 document.addEventListener("DOMContentLoaded", () => {
-    valida_sessao();
-    carregarDados();
+    iniciarPagina();
 });
 
+async function iniciarPagina() {
+    const sessao = await valida_sessao();
+    usuarioLogado = sessao.data;
+
+    aplicarPermissoes();
+    carregarDados();
+}
+
 document.getElementById("novo").addEventListener("click", () => {
+    if (!podeCriar()) {
+        alert("Apenas contratantes podem criar chamados nesta aba.");
+        return;
+    }
+
     window.location.href = "../html/contratante_novo.html";
 });
 
@@ -15,7 +29,7 @@ async function logoff() {
     const retorno = await fetch("../../../home/php/usuario_logoff.php");
     const resposta = await retorno.json();
 
-    if (resposta.status == "ok") {
+    if (resposta.status === "ok") {
         window.location.href = "../../../home/html/login.html";
     } else {
         alert("Falha ao efetuar logoff.");
@@ -23,84 +37,170 @@ async function logoff() {
 }
 
 async function carregarDados() {
-    const retorno = await fetch("../php/contratantes_get.php");
-    const resposta = await retorno.json();
+    const lista = document.getElementById("lista");
 
-    if (resposta.status == "ok") {
-        const registros = resposta.data;
-        let html = "";
+    try {
+        const retorno = await fetch("../php/contratantes_get.php");
+        const resposta = await retorno.json();
 
-        for (let i = 0; i < registros.length; i++) {
-            const objeto = registros[i];
-
-            html += `
-                <div class="col-md-6 col-lg-4">
-                    <div class="card service-card">
-                        <div class="card-body d-flex flex-column">
-                            <div class="d-flex justify-content-between align-items-start mb-3">
-                                <span class="service-badge">${objeto.tipo ?? "Sem categoria"}</span>
-                                <span class="service-price">R$ ${formatarValor(objeto.valor)}</span>
-                            </div>
-
-                            <h5 class="card-title fw-bold">${objeto.nome ?? "Sem nome"}</h5>
-
-                            <p class="card-text text-muted mb-3">
-                                ${objeto.descricao ?? "Sem descrição cadastrada."}
-                            </p>
-
-                            <div class="mb-4">
-                                <p class="mb-1"><i class="bi bi-geo-alt text-success me-1"></i> <strong>Localidade:</strong> ${objeto.localidade ?? "Não informada"}</p>
-                            </div>
-
-                            <div class="mt-auto d-flex gap-2">
-                                <a href="contratante_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark fw-semibold w-50">
-                                    Alterar
-                                </a>
-                                <button class="btn btn-danger btn-sm fw-semibold w-50" onclick="excluir(${objeto.id})">
-                                    Excluir
-                                </button>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            `;
+        if (resposta.status !== "ok") {
+            lista.innerHTML = renderizarVazio();
+            return;
         }
 
-        document.getElementById("lista").innerHTML = html;
-    } else {
-        document.getElementById("lista").innerHTML = `
-            <div class="col-12">
-                <div class="empty-state">
-                    <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
-                    <h4 class="mb-2">Nenhum serviço cadastrado</h4>
-                    <p class="mb-0">Clique em <strong>"Novo Serviço"</strong> para adicionar o primeiro.</p>
-                </div>
-            </div>
-        `;
+        const registros = resposta.data;
+
+        if (registros.length === 0) {
+            lista.innerHTML = renderizarVazio();
+            return;
+        }
+
+        lista.innerHTML = registros.map(renderizarCardServico).join("");
+    } catch (erro) {
+        console.error(erro);
+        lista.innerHTML = renderizarVazio("Não foi possível carregar os serviços agora.");
     }
-}
-
-function formatarValor(valor) {
-    const numero = parseFloat(valor);
-
-    if (isNaN(numero)) {
-        return "0,00";
-    }
-
-    return numero.toFixed(2).replace(".", ",");
 }
 
 async function excluir(id) {
+    if (!podeCriar()) {
+        alert("Apenas contratantes podem excluir chamados nesta aba.");
+        return;
+    }
+
     const confirmar = confirm("Deseja realmente excluir este serviço?");
     if (!confirmar) return;
 
-    const retorno = await fetch("../php/contratantes_excluir.php?id=" + id);
+    const retorno = await fetch("../php/contratantes_excluir.php?id=" + id, {
+        credentials: "same-origin"
+    });
     const resposta = await retorno.json();
 
-    if (resposta.status == "ok") {
+    if (resposta.status === "ok") {
         alert(resposta.mensagem);
         carregarDados();
     } else {
         alert("Erro: " + resposta.mensagem);
     }
+}
+
+function renderizarCardServico(objeto) {
+    return `
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                ${renderizarFoto(objeto)}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <span class="service-badge">${escaparHtml(formatarCategoria(objeto.tipo))}</span>
+                        <span class="service-price">${formatarMoeda(objeto.valor)}</span>
+                    </div>
+
+                    <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
+                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
+
+                    <p class="mb-4">
+                        <i class="bi bi-geo-alt text-success me-1"></i>
+                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                    </p>
+
+                    ${renderizarAcoes(objeto)}
+                </div>
+            </div>
+        </div>
+    `;
+}
+
+function renderizarFoto(objeto) {
+    const foto = obterPrimeiraFoto(objeto.foto);
+
+    if (!foto) {
+        return "";
+    }
+
+    return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do chamado">`;
+}
+
+function obterPrimeiraFoto(valor) {
+    if (!valor) {
+        return "";
+    }
+
+    try {
+        const fotos = JSON.parse(valor);
+        return Array.isArray(fotos) ? (fotos[0] || "") : "";
+    } catch (erro) {
+        return valor;
+    }
+}
+
+function renderizarAcoes(objeto) {
+    if (!podeGerenciarRegistro(objeto)) {
+        return "";
+    }
+
+    return `
+        <div class="mt-auto d-flex gap-2">
+            <a href="contratante_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
+            <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
+        </div>
+    `;
+}
+
+function renderizarVazio(mensagem = "Clique em Novo serviço para adicionar o primeiro.") {
+    return `
+        <div class="col-12">
+            <div class="empty-state">
+                <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
+                <h4 class="mb-2">Nenhum serviço cadastrado</h4>
+                <p class="mb-0">${mensagem}</p>
+            </div>
+        </div>
+    `;
+}
+
+function formatarMoeda(valor) {
+    const numero = Number(valor);
+
+    if (Number.isNaN(numero) || numero <= 0) {
+        return "A negociar";
+    }
+
+    return new Intl.NumberFormat("pt-BR", {
+        style: "currency",
+        currency: "BRL"
+    }).format(numero);
+}
+
+function formatarCategoria(categoria) {
+    const categorias = {
+        Eletrica: "Elétrica",
+        Informatica: "Informática"
+    };
+
+    return categorias[categoria] || categoria || "Sem categoria";
+}
+
+function aplicarPermissoes() {
+    const botaoNovo = document.getElementById("novo");
+
+    if (!podeCriar()) {
+        botaoNovo.classList.add("d-none");
+    }
+}
+
+function podeCriar() {
+    return usuarioLogado?.tipo === "contratante" || usuarioLogado?.tipo === "adm";
+}
+
+function podeGerenciarRegistro(objeto) {
+    return usuarioLogado?.tipo === "adm" || (
+        usuarioLogado?.tipo === "contratante" &&
+        Number(objeto.id_usuario) === Number(usuarioLogado?.id)
+    );
+}
+
+function escaparHtml(valor) {
+    const elemento = document.createElement("span");
+    elemento.textContent = valor;
+    return elemento.innerHTML;
 }

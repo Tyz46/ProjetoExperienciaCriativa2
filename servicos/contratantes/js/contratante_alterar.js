@@ -1,8 +1,26 @@
-document.addEventListener("DOMContentLoaded", () => {
+let podeAlterar = false;
+let usuarioLogado = null;
+
+document.addEventListener("DOMContentLoaded", async () => {
     const url = new URLSearchParams(window.location.search);
     const id = url.get("id");
 
-    valida_sessao();
+    const sessao = await valida_sessao();
+    usuarioLogado = sessao.data;
+    podeAlterar = usuarioLogado?.tipo === "contratante" || usuarioLogado?.tipo === "adm";
+
+    if (!podeAlterar) {
+        alert("Apenas contratantes podem alterar chamados nesta aba.");
+        window.location.href = "../html/contratante.html";
+        return;
+    }
+
+    if (!id) {
+        alert("Serviço não encontrado.");
+        window.location.href = "../html/contratante.html";
+        return;
+    }
+
     buscarDados(id);
 });
 
@@ -10,8 +28,14 @@ async function buscarDados(id) {
     const retorno = await fetch("../php/contratantes_get.php?id=" + id);
     const resposta = await retorno.json();
 
-    if (resposta.status == "ok") {
+    if (resposta.status === "ok" && resposta.data.length > 0) {
         const reg = resposta.data[0];
+
+        if (!podeGerenciarRegistro(reg)) {
+            alert("Você só pode alterar chamados criados pela sua conta.");
+            window.location.href = "../html/contratante.html";
+            return;
+        }
 
         document.getElementById("id").value = reg.id;
         document.getElementById("nome").value = reg.nome ?? "";
@@ -34,6 +58,11 @@ document.getElementById("voltar").addEventListener("click", () => {
 });
 
 async function alterar() {
+    if (!podeAlterar) {
+        alert("Apenas contratantes podem alterar chamados nesta aba.");
+        return;
+    }
+
     const nome = document.getElementById("nome").value.trim();
     const descricao = document.getElementById("descricao").value.trim();
     const tipo = document.getElementById("tipo").value;
@@ -53,17 +82,27 @@ async function alterar() {
     fd.append("valor", valor);
     fd.append("localidade", localidade);
 
-    const retorno = await fetch("../php/contratantes_alterar.php?id=" + id, {
-        method: "POST",
-        body: fd
-    });
+    try {
+        const retorno = await fetch("../php/contratantes_alterar.php?id=" + id, {
+            method: "POST",
+            credentials: "same-origin",
+            body: fd
+        });
 
-    const resposta = await retorno.json();
+        const resposta = await retorno.json();
 
-    if (resposta.status == "ok") {
-        alert("Serviço alterado com sucesso!");
-        window.location.href = "../html/contratante.html";
-    } else {
-        alert("Erro! " + resposta.mensagem);
+        if (resposta.status === "ok") {
+            alert("Serviço alterado com sucesso!");
+            window.location.href = "../html/contratante.html";
+        } else {
+            alert("Erro! " + resposta.mensagem);
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro de conexão. Verifique se o servidor está em execução.");
     }
+}
+
+function podeGerenciarRegistro(registro) {
+    return usuarioLogado?.tipo === "adm" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
 }

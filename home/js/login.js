@@ -19,6 +19,7 @@ async function consulta() {
     try {
         const retorno = await fetch("../php/usuario_login.php", {
             method: "POST",
+            credentials: "same-origin",
             body: fd
         });
 
@@ -29,7 +30,7 @@ async function consulta() {
 
             if (resposta.status === "ok") {
                 alert("Login efetuado com sucesso!");
-                window.location.href = "../html/index.html"; 
+                window.location.href = "../html/index.html?v=sessao";
             } else {
                 alert("Atenção: " + resposta.mensagem);
             }

@@ -2,10 +2,13 @@
 session_start();
 $retorno = ['status' => '','mensagem' => '','data' => []];
 if(isset($_SESSION['usuario'])){
+    $usuario = $_SESSION['usuario'];
+    unset($usuario['senha']);
+
     $retorno = [
         'status' => 'ok',
         'mensagem' => '',
-        'data' => []
+        'data' => $usuario
     ];
 }else{
     $retorno = [
