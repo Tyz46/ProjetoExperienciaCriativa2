@@ -10,11 +10,21 @@ async function novo() {
     const usuario = document.getElementById("usuario").value.trim();
     const senha = document.getElementById("senha").value.trim();
     const tipo = document.getElementById("tipo").value;
+    const erro = document.getElementById("erro");
 
     if (!nome || !email || !telefone || !usuario || !senha || !tipo) {
         alert("Preencha todos os campos.");
         return;
     }
+
+    if (!email.includes("@")) {
+        console.log("Erro na validação do E-Mail");
+        erro.textContent = "Erro na validação do E-Mail";
+        return;
+    }
+
+    console.log("E-mail validado com sucesso");
+    erro.textContent = "";
 
     const fd = new FormData();
     fd.append("nome", nome);
