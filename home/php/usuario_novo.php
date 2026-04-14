@@ -1,38 +1,42 @@
 <?php
-    include_once('conexao.php');
+include_once('conexao.php');
 
-    $retorno = [
-        'status'    => '', // ok ou nok
-        'mensagem'  => '', // mensagem de sucesso ou erro
-        'data'      => []  // efetivamente o retorno
-    ];
+$retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
-    // As variáveis que eu ireir receber por $_POST;
-    $nome       = $_POST['nome'];
-    $usuario    = $_POST['usuario'];
-    $senha      = $_POST['senha'];
-    
-    $stmt = $conexao->prepare("INSERT INTO usuario(nome,usuario,senha) VALUES (?,?,?)"); // prepara a query
-    $stmt->bind_param("sss",$nome,$usuario,$senha);
-    $stmt->execute(); // executa a query
+$nome = $_POST['nome'] ?? '';
+$email = $_POST['email'] ?? '';
+$telefone = $_POST['telefone'] ?? '';
+$usuario = $_POST['usuario'] ?? '';
+$senha = $_POST['senha'] ?? '';
+$tipo = $_POST['tipo'] ?? 'contratante';
 
-    if($stmt->affected_rows > 0){
-        $retorno = [
-            'status'    => 'ok', // ok ou nok
-            'mensagem'  => 'Registro inserido com sucesso', // mensagem de sucesso ou erro
-            'data'      => []  // efetivamente o retorno
-        ];
-    }else{
-        $retorno = [
-            'status'    => 'nok', // ok ou nok
-            'mensagem'  => 'Não foi possível inserir o registro', // mensagem de sucesso ou erro
-            'data'      => []  // efetivamente o retorno
-        ];
+if (empty($nome) || empty($email) || empty($telefone) || empty($usuario) || empty($senha)) {
+    $retorno['mensagem'] = 'Preencha todos os campos obrigatórios.';
+} else {
+    $sql = "INSERT INTO usuario (nome, email, telefone, usuario, senha, tipo) VALUES (?, ?, ?, ?, ?, ?)";
+    $stmt = $conexao->prepare($sql);
+
+    // Se o prepare falhar, nós capturamos o erro do MySQL aqui!
+    if (!$stmt) {
+        $retorno['mensagem'] = "Erro na estrutura do banco: " . $conexao->error;
+    } else {
+        $stmt->bind_param("ssssss", $nome, $email, $telefone, $usuario, $senha, $tipo);
+        
+        if ($stmt->execute()) {
+            if ($stmt->affected_rows > 0) {
+                $retorno['status'] = 'ok';
+                $retorno['mensagem'] = 'Usuário cadastrado com sucesso.';
+            } else {
+                $retorno['mensagem'] = 'Não foi possível cadastrar o usuário.';
+            }
+        } else {
+            $retorno['mensagem'] = "Erro ao executar inserção: " . $stmt->error;
+        }
+        $stmt->close();
     }
+}
 
-    $stmt->close();    
+$conexao->close();
 
-    $conexao->close();
-
-    header("Content-type:application/json;charset:utf-8");
-    echo json_encode($retorno);
+header("Content-type:application/json;charset:utf-8");
+echo json_encode($retorno);

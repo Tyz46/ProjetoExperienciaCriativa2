@@ -1,54 +1,78 @@
-document.addEventListener("DOMContentLoaded", () => {
-    valida_sessao();
-})
-document.getElementById("enviar").addEventListener('click', function(){
-    // Chamar a função fetch novo();
-    novo();
+let podeCadastrar = false;
+
+document.addEventListener("DOMContentLoaded", async () => {
+    const sessao = await valida_sessao();
+    podeCadastrar = sessao.data?.tipo === "contratante" || sessao.data?.tipo === "adm";
+
+    if (!podeCadastrar) {
+        alert("Apenas contratantes podem criar chamados nesta aba.");
+        window.location.href = "../html/contratante.html";
+    }
 });
 
-document.getElementById('voltar').addEventListener('click', () => {
-    window.location.href = '../html/contratante.html';
+document.getElementById("enviar").addEventListener("click", cadastrar);
+
+document.getElementById("voltar").addEventListener("click", () => {
+    window.location.href = "../html/contratante.html";
 });
 
-async function novo(){
-    var nome    = document.getElementById("nome").value;
-    var descricao    = document.getElementById("descricao").value;
-    var orcamento    = document.getElementById("orcamento").value;
-    var data_publicacao   = document.getElementById("data_publicacao").value;
+async function cadastrar() {
+    if (!podeCadastrar) {
+        alert("Apenas contratantes podem criar chamados nesta aba.");
+        return;
+    }
 
-    // Validação: verificar se algum campo está vazio
-    if (!nome.trim()) {
-        alert("O campo Nome não pode estar vazio.");
-        return;
-    }
-    if (!descricao.trim()) {
-        alert("O campo Descrição não pode estar vazio.");
-        return;
-    }
-    if (!orcamento.trim()) {
-        alert("O campo Orçamento não pode estar vazio.");
-        return;
-    }
-    if (!data_publicacao.trim()) {
-        alert("O campo Data de Publicação não pode estar vazio.");
+    const nome = document.getElementById("nome").value.trim();
+    const descricao = document.getElementById("descricao").value.trim();
+    const tipo = document.getElementById("tipo").value;
+    const valor = document.getElementById("valor").value;
+    const localidade = document.getElementById("localidade").value.trim();
+    const fotos = document.getElementById("fotos").files;
+
+    if (!nome || !descricao || !tipo || !valor || !localidade) {
+        alert("Preencha todos os campos.");
         return;
     }
 
     const fd = new FormData();
-    fd.append('nome',nome);
-    fd.append('descricao',descricao);
-    fd.append('orcamento',orcamento);
-    fd.append('data_publicacao',data_publicacao);
+    fd.append("nome", nome);
+    fd.append("descricao", descricao);
+    fd.append("tipo", tipo);
+    fd.append("valor", valor);
+    fd.append("localidade", localidade);
+    adicionarFotos(fd, fotos);
 
-    const retorno = await fetch("../php/contratantes_novo.php", {
-        method: "POST",
-        body: fd
-    });
-    const resposta = await retorno.json();
-    if(resposta.status == "ok"){
-        alert("Sucesso! " + resposta.mensagem);
-        window.location.href = "../html/contratante.html";
-    }else{
-        alert("ERRO! " + resposta.mensagem);
+    try {
+        const retorno = await fetch("../php/contratantes_novo.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: fd
+        });
+
+        // Pegamos a resposta como texto para evitar crash
+        const textoResposta = await retorno.text();
+
+        try {
+            const resposta = JSON.parse(textoResposta);
+
+            if (resposta.status === "ok") {
+                alert("Chamado cadastrado com sucesso!");
+                window.location.href = "../html/contratante.html";
+            } else {
+                alert("Atenção: " + resposta.mensagem);
+            }
+        } catch (erroJson) {
+            console.error("Erro do Servidor:", textoResposta);
+            alert("Erro no Servidor PHP:\n\n" + textoResposta);
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro de conexão (O servidor está desligado ou o caminho está errado).");
+    }
+}
+
+function adicionarFotos(fd, fotos) {
+    for (const foto of fotos) {
+        fd.append("fotos[]", foto);
     }
 }
