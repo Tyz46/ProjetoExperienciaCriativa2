@@ -5,67 +5,92 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Novo Serviço - ConsertaJá</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../../../home/css/app.css?v=fotos" rel="stylesheet">
 </head>
-<body class="bg-light">
+<body>
+<div class="site-shell">
 
-    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-sm bg-white shadow-sm">
         <div class="container-fluid">
-            <a class="navbar-brand text-success fw-bold" href="#">ConsertaJá</a>
+            <a class="navbar-brand" href="../../../home/html/index.html">
+                <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJá
+            </a>
         </div>
     </nav>
 
-    <!-- CONTEÚDO PRINCIPAL -->
-    <main class="d-flex justify-content-center align-items-center vh-100">
-        <div class="card shadow-lg p-4" style="max-width: 500px; width: 100%;">
-            <div class="text-center mb-4">
-                <h2 class="fw-bold text-success">Novo Serviço</h2>
-                <p class="text-muted">Preencha as informações para cadastrar um novo Serviço</p>
+    <main class="auth-main">
+        <div class="form-card">
+            <div class="form-header">
+                <span class="icon-box mb-3"><i class="bi bi-briefcase"></i></span>
+                <h2 class="fw-bold mb-2">Novo serviço</h2>
+                <p class="mb-0">Preencha as informações para publicar sua oferta.</p>
             </div>
 
-            <!-- FORMULÁRIO -->
-            <div class="mb-3">
-                <label for="nome" class="form-label fw-semibold">Nome</label>
-                <input type="text" id="nome" class="form-control" placeholder="Digite o nome do serviço" required>
-            </div>
+            <div class="form-body bg-white">
+                <div class="mb-3">
+                    <label for="nome" class="form-label">Nome do serviço</label>
+                    <input type="text" id="nome" class="form-control" placeholder="Ex: Instalação elétrica residencial">
+                </div>
 
-            <div class="mb-3">
-                <label for="descricao" class="form-label fw-semibold">Descrição</label>
-                <input type="text" id="descricao" class="form-control" placeholder="Que tipo de trabalho você está oferendo?" required>
-            </div>
-            
-            <div class="mb-3">
-                <label for="preco" class="form-label fw-semibold">Preço R$</label>
-                <input type="number" id="preco" class="form-control" placeholder="0.00" required>
-            </div>
+                <div class="mb-3">
+                    <label for="descricao" class="form-label">Descrição</label>
+                    <textarea id="descricao" class="form-control" placeholder="Descreva o serviço, experiência, prazo e diferenciais"></textarea>
+                </div>
 
-            <div class="mb-3">
-                <label for="data_publicacao" class="form-label fw-semibold">Data de Publicação</label>
-                <input type="date" id="data_publicacao" class="form-control" required>
-            </div>
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="tipo" class="form-label">Categoria</label>
+                        <select id="tipo" class="form-select">
+                            <option value="" selected disabled>Selecione uma categoria</option>
+                            <option value="Eletrica">Elétrica</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Informatica">Informática</option>
+                            <option value="Pintura">Pintura</option>
+                            <option value="Encanamento">Encanamento</option>
+                            <option value="Montagem">Montagem</option>
+                        </select>
+                    </div>
 
-            <!-- BOTÕES -->
-            <div class="d-flex justify-content-between">
-                <button id="enviar" class="btn btn-success w-50 me-2 fw-semibold">Cadastrar</button>
-                <button id="voltar" class="btn btn-danger w-50 fw-semibold">Voltar</button>
+                    <div class="col-md-6">
+                        <label for="valor" class="form-label">Valor</label>
+                        <div class="input-group">
+                            <span class="input-group-text">R$</span>
+                            <input type="number" step="0.01" min="0" id="valor" class="form-control" placeholder="150.00">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="my-4">
+                    <label for="localidade" class="form-label">Localidade</label>
+                    <input type="text" id="localidade" class="form-control" placeholder="Ex: Curitiba - PR">
+                </div>
+
+                <div class="mb-4">
+                    <label for="fotos" class="form-label">Fotos de serviços ou catálogo (opcional)</label>
+                    <input type="file" id="fotos" class="form-control" accept="image/*" multiple>
+                    <div class="form-text">Use para mostrar trabalhos anteriores ou exemplos do que você oferece.</div>
+                </div>
+
+                <div class="d-flex justify-content-between gap-2 action-row">
+                    <button id="enviar" class="btn btn-brand btn-main w-50">
+                        <i class="bi bi-check-circle me-1"></i>Cadastrar
+                    </button>
+                    <button id="voltar" class="btn btn-outline-danger btn-main w-50">
+                        <i class="bi bi-arrow-left me-1"></i>Voltar
+                    </button>
+                </div>
             </div>
         </div>
     </main>
 
-    <!-- FOOTER -->
-    <footer class="bg-white border-top py-3 text-center">
+    <footer class="footer py-3 text-center">
         <p class="mb-1 text-secondary">© 2025 ConsertaJá. Todos os direitos reservados.</p>
-        <div>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-facebook"></i></a>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-instagram"></i></a>
-            <a href="#" class="btn btn-outline-success btn-sm mx-1"><i class="bi bi-linkedin"></i></a>
-        </div>
     </footer>
 
-    <!-- SCRIPTS -->
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.js"></script>
-    <script src="../js/prestadores_novo.js"></script>
-    <script src="../js/valida_sessao.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../js/prestadores_novo.js?v=fotos"></script>
+    <script src="../js/valida_sessao.js?v=origem"></script>
+</div>
 </body>
 </html>

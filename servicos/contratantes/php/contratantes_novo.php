@@ -1,53 +1,100 @@
 <?php
-    include_once('conexao.php');
+session_start();
+include_once('conexao.php');
 
-    $retorno = [
-        'status'    => '', // ok ou nok
-        'mensagem'  => '', // mensagem de sucesso ou erro
-        'data'      => []  // efetivamente o retorno
-    ];
+$retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
-    // As variáveis que eu irei receber por $_POST;
-    $nome             = trim($_POST['nome'] ?? '');
-    $descricao        = trim($_POST['descricao'] ?? '');
-    $orcamento        = trim($_POST['orcamento'] ?? '');
-    $data_publicacao  = trim($_POST['data_publicacao'] ?? '');
+if (!isset($_SESSION['usuario']) || !in_array(($_SESSION['usuario']['tipo'] ?? ''), ['contratante', 'adm'], true)) {
+    $retorno['mensagem'] = 'Apenas contratantes podem criar chamados nesta aba.';
+    $conexao->close();
+    header("Content-type:application/json;charset:utf-8");
+    echo json_encode($retorno);
+    exit;
+}
 
-    if ($nome === '' || $descricao === '' || $orcamento === '' || $data_publicacao === '') {
-        $retorno = [
-            'status'    => 'nok',
-            'mensagem'  => 'Todos os campos são obrigatórios.',
-            'data'      => []
-        ];
-    } elseif (!is_numeric($orcamento)) {
-        $retorno = [
-            'status'    => 'nok',
-            'mensagem'  => 'Orçamento inválido.',
-            'data'      => []
-        ];
+$nome = trim($_POST['nome'] ?? '');
+$descricao = trim($_POST['descricao'] ?? '');
+$tipo = trim($_POST['tipo'] ?? '');
+$valor = trim($_POST['valor'] ?? '');
+$localidade = trim($_POST['localidade'] ?? '');
+$idUsuario = (int) $_SESSION['usuario']['id'];
+$origem = 'contratante';
+
+if ($nome === '' || $descricao === '' || $tipo === '' || $valor === '' || $localidade === '') {
+    $retorno['mensagem'] = 'Preencha todos os campos obrigatórios.';
+} else {
+    $fotos = salvarFotos($origem);
+    $fotoJson = count($fotos) > 0 ? json_encode($fotos, JSON_UNESCAPED_SLASHES) : null;
+    $sql = "INSERT INTO servico (id_usuario, origem, nome, descricao, tipo, valor, localidade, foto) VALUES (?, ?, ?, ?, ?, ?, ?, ?)";
+    $stmt = $conexao->prepare($sql);
+
+    if (!$stmt) {
+        $retorno['mensagem'] = "Erro na estrutura do banco: " . $conexao->error;
     } else {
-        $stmt = $conexao->prepare("INSERT INTO contratante(nome,descricao,orcamento,data_publicacao) VALUES (?,?,?,?)"); // prepara a query
-        $stmt->bind_param("ssss",$nome,$descricao,$orcamento,$data_publicacao);
-        $stmt->execute(); // executa a query
-
-        if($stmt->affected_rows > 0){
-            $retorno = [
-                'status'    => 'ok', // ok ou nok
-                'mensagem'  => 'Registro inserido com sucesso', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
+        $stmt->bind_param("isssssss", $idUsuario, $origem, $nome, $descricao, $tipo, $valor, $localidade, $fotoJson);
+        
+        if ($stmt->execute()) {
+            if ($stmt->affected_rows > 0) {
+                $retorno['status'] = 'ok';
+                $retorno['mensagem'] = 'Chamado cadastrado com sucesso!';
+            } else {
+                $retorno['mensagem'] = 'Não foi possível inserir o registro.';
+            }
         } else {
-            $retorno = [
-                'status'    => 'nok', // ok ou nok
-                'mensagem'  => 'Não foi possível inserir o registro', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
+            $retorno['mensagem'] = "Erro ao executar inserção: " . $stmt->error;
+        }
+        $stmt->close();
+    }
+}
+
+$conexao->close();
+
+header("Content-type:application/json;charset:utf-8");
+echo json_encode($retorno);
+
+function salvarFotos($origem) {
+    if (!isset($_FILES['fotos'])) {
+        return [];
+    }
+
+    $arquivos = $_FILES['fotos'];
+    $fotos = [];
+    $pastaDestino = __DIR__ . '/../../../uploads/servicos/';
+    $caminhoWeb = '../../../uploads/servicos/';
+    $extensoesPermitidas = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+
+    if (!is_dir($pastaDestino)) {
+        mkdir($pastaDestino, 0777, true);
+    }
+
+    foreach ($arquivos['name'] as $indice => $nomeOriginal) {
+        if ($arquivos['error'][$indice] === UPLOAD_ERR_NO_FILE) {
+            continue;
+        }
+
+        if ($arquivos['error'][$indice] !== UPLOAD_ERR_OK) {
+            continue;
+        }
+
+        if ($arquivos['size'][$indice] > 5 * 1024 * 1024) {
+            continue;
+        }
+
+        $tmpName = $arquivos['tmp_name'][$indice];
+        if (!@getimagesize($tmpName)) {
+            continue;
+        }
+
+        $extensao = strtolower(pathinfo($nomeOriginal, PATHINFO_EXTENSION));
+        if (!in_array($extensao, $extensoesPermitidas, true)) {
+            continue;
+        }
+
+        $nomeArquivo = $origem . '_' . uniqid('', true) . '.' . $extensao;
+        if (move_uploaded_file($tmpName, $pastaDestino . $nomeArquivo)) {
+            $fotos[] = $caminhoWeb . $nomeArquivo;
         }
     }
 
-    $stmt->close();    
-
-    $conexao->close();
-
-    header("Content-type:application/json;charset:utf-8");
-    echo json_encode($retorno);
+    return $fotos;
+}

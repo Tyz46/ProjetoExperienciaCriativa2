@@ -1,29 +1,46 @@
-document.getElementById('enviar').addEventListener('click', () => {
-    consulta();
+document.getElementById("enviar").addEventListener("click", consulta);
+document.getElementById("novo").addEventListener("click", () => {
+    window.location.href = "../html/cadastro.html";
 });
 
-document.getElementById('novo').addEventListener('click', () => {
-    window.location.href = '../html/cadastro.html';
-});
+async function consulta() {
+    const usuario = document.getElementById("usuario").value.trim();
+    const senha = document.getElementById("senha").value.trim();
 
-async function consulta(){
-    var usuario = document.getElementById('usuario').value;
-    var senha = document.getElementById('senha').value;
+    if (!usuario || !senha) {
+        alert("Preencha usuário e senha.");
+        return;
+    }
 
     const fd = new FormData();
-    fd.append('usuario',usuario);
-    fd.append('senha',senha);
+    fd.append("usuario", usuario);
+    fd.append("senha", senha);
 
-    const retorno = await fetch("../php/usuario_login.php",{
-        method: 'POST',
-        body: fd
-    });
+    try {
+        const retorno = await fetch("../php/usuario_login.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: fd
+        });
 
-    const resposta = await retorno.json();
-    if(resposta.status == 'ok'){
-        alert("Login efetuado com sucesso!");
-        window.location.href = '../html/';
-    }else{
-        alert("Falha nas credenciais.");
-    };
-};
+        const textoResposta = await retorno.text();
+
+        try {
+            const resposta = JSON.parse(textoResposta);
+
+            if (resposta.status === "ok") {
+                alert("Login efetuado com sucesso!");
+                window.location.href = "../html/index.html?v=sessao";
+            } else {
+                alert("Atenção: " + resposta.mensagem);
+            }
+        } catch (erroJson) {
+            console.error("Erro do Servidor:", textoResposta);
+            alert("Erro no Servidor PHP:\n\n" + textoResposta);
+        }
+
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro de conexão (O servidor está desligado ou o caminho está errado).");
+    }
+}

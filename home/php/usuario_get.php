@@ -1,4 +1,5 @@
 <?php
+    session_start();
     include_once('conexao.php');
 
     $retorno = [
@@ -10,7 +11,24 @@
     // Vamos montar o SELECT
     // 1ª Situação - SEM RECEBER O ID por GET
     // 2ª Situação - RECEBENDO O ID por GET
-    if(isset($_GET['id'])){
+    if(isset($_GET['perfil'])){
+        if(!isset($_SESSION['usuario']['id'])){
+            $retorno = [
+                'status'    => 'nok',
+                'mensagem'  => 'Usuário não autenticado',
+                'data'      => []
+            ];
+
+            $conexao->close();
+            header("Content-type:application/json;charset:utf-8");
+            echo json_encode($retorno);
+            exit;
+        }
+
+        $id = $_SESSION['usuario']['id'];
+        $stmt = $conexao->prepare("SELECT id, nome, email, telefone, usuario, tipo FROM usuario WHERE id = ?");
+        $stmt->bind_param("i",$id);
+    }elseif(isset($_GET['id'])){
         $id = $_GET['id'];
         $stmt = $conexao->prepare("SELECT * FROM usuario WHERE id = ?"); // prepara a query
         $stmt->bind_param("i",$id);

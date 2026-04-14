@@ -1,44 +1,44 @@
 <?php
-    include_once('conexao.php');
+session_start();
+include_once('conexao.php');
 
-    $retorno = [
-        'status'    => '', // ok ou nok
-        'mensagem'  => '', // mensagem de sucesso ou erro
-        'data'      => []  // efetivamente o retorno
-    ];
+$retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
-    $stmt = $conexao->prepare("SELECT * FROM usuario WHERE usuario = ? AND senha = ?"); // prepara a query
-    $stmt->bind_param("ss",$_POST['usuario'],$_POST['senha']);
-    $stmt->execute(); // executa a query
-    $resultado = $stmt->get_result(); // pega o resultado
-    
-    $tabela = []; // array para enviar para o Front
-    if($resultado->num_rows > 0){
-        // criar o laço de repetição para ler o resultado
-        while($linha = $resultado->fetch_assoc()){
-            $tabela[] = $linha;
+$usuario = $_POST['usuario'] ?? '';
+$senha = $_POST['senha'] ?? '';
+
+if (empty($usuario) || empty($senha)) {
+    $retorno['mensagem'] = 'Preencha usuário e senha.';
+} else {
+    $sql = "SELECT * FROM usuario WHERE usuario = ? AND senha = ?";
+    $stmt = $conexao->prepare($sql);
+
+    if (!$stmt) {
+        $retorno['mensagem'] = "Erro no banco de dados: " . $conexao->error;
+    } else {
+        $stmt->bind_param("ss", $usuario, $senha);
+        $stmt->execute();
+        $resultado = $stmt->get_result();
+
+        if ($resultado->num_rows > 0) {
+            $tabela = [];
+            while ($linha = $resultado->fetch_assoc()) {
+                $tabela[] = $linha;
+            }
+
+            $_SESSION['usuario'] = $tabela[0];
+
+            $retorno['status'] = 'ok';
+            $retorno['mensagem'] = 'Login efetuado com sucesso.';
+            $retorno['data'] = $tabela;
+        } else {
+            $retorno['mensagem'] = 'Usuário ou senha inválidos.';
         }
-
-        $retorno = [
-            'status'    => 'ok', // ok ou nok
-            'mensagem'  => 'Registros encontrados', // mensagem de sucesso ou erro
-            'data'      => $tabela  // efetivamente o retorno
-        ];
-
-        // Start Session
-        session_start();
-        $_SESSION['usuario'] = $tabela;
-
-    }else{
-        $retorno = [
-            'status'    => 'nok', // ok ou nok
-            'mensagem'  => 'Nenhum registro encontrado', // mensagem de sucesso ou erro
-            'data'      => []  // efetivamente o retorno
-        ];
+        $stmt->close();
     }
+}
 
-    $stmt->close();
-    $conexao->close();
+$conexao->close();
 
-    header("Content-type:application/json;charset:utf-8");
-    echo json_encode($retorno);
+header("Content-type:application/json;charset:utf-8");
+echo json_encode($retorno);
