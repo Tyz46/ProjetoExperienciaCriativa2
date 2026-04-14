@@ -1,5 +1,8 @@
 let usuarioLogado = null;
 let registrosServicos = [];
+let usuarioLocalizacao = null;
+let usuarioEndereco = null;
+const cacheGeocoding = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
     configurarFiltros();
@@ -9,7 +12,10 @@ document.addEventListener("DOMContentLoaded", () => {
 async function iniciarPagina() {
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
+    usuarioEndereco = usuarioLogado?.endereco || null;
 
+    await obterLocalizacaoUsuario();
+    atualizarStatusLocalizacao();
     aplicarPermissoes();
     carregarDados();
 }
@@ -87,7 +93,7 @@ async function excluir(id) {
 function configurarFiltros() {
     const botao = document.getElementById("abrirFiltros");
     const painel = document.getElementById("filtrosPainel");
-    const filtroLocalidade = document.getElementById("filtroLocalidade");
+    const filtroDistancia = document.getElementById("filtroDistancia");
     const filtroTipo = document.getElementById("filtroTipo");
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -104,7 +110,10 @@ function configurarFiltros() {
         painel.hidden = !abrir;
     });
 
-    filtroLocalidade?.addEventListener("input", renderizarLista);
+    filtroDistancia?.addEventListener("input", () => {
+        atualizarDistanciaSelecionada();
+        renderizarLista();
+    });
     filtroTipo?.addEventListener("change", renderizarLista);
     filtroPrecoMin?.addEventListener("input", () => {
         ajustarFaixaPreco("min");
@@ -119,7 +128,129 @@ function configurarFiltros() {
     botaoLimpar?.addEventListener("click", limparFiltros);
 }
 
-function renderizarLista() {
+function initDistanceFilter() {
+    // Função mantida para compatibilidade, mas não faz nada agora
+}
+
+async function obterLocalizacaoUsuario() {
+    if (usuarioEndereco) {
+        const coordenadas = await converterLocalidadeEmLatLng(usuarioEndereco);
+        if (coordenadas) {
+            usuarioLocalizacao = coordenadas;
+            return usuarioLocalizacao;
+        }
+    }
+
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+            resolve(null);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition((posicao) => {
+            usuarioLocalizacao = {
+                lat: posicao.coords.latitude,
+                lng: posicao.coords.longitude
+            };
+            resolve(usuarioLocalizacao);
+        }, () => {
+            resolve(null);
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+        });
+    });
+}
+
+function atualizarStatusLocalizacao() {
+    const status = document.getElementById("localizacaoStatus");
+    const filtroDistancia = document.getElementById("filtroDistancia");
+
+    if (!status) {
+        return;
+    }
+
+    if (!usuarioLocalizacao) {
+        status.textContent = usuarioEndereco
+            ? "Endereço informado, mas localização não pôde ser calculada. Verifique o endereço ou tente novamente mais tarde."
+            : "Localização ou endereço não disponível. Filtro de distância inativo.";
+        if (filtroDistancia) {
+            filtroDistancia.disabled = true;
+        }
+    } else {
+        status.textContent = "Filtro de distância ativado. Ajuste a distância para ver serviços próximos.";
+        if (filtroDistancia) {
+            filtroDistancia.disabled = false;
+        }
+    }
+}
+
+function atualizarDistanciaSelecionada() {
+    const filtroDistancia = document.getElementById("filtroDistancia");
+    const filtroDistanciaValor = document.getElementById("filtroDistanciaValor");
+
+    if (!filtroDistancia || !filtroDistanciaValor) {
+        return;
+    }
+
+    filtroDistanciaValor.textContent = `${filtroDistancia.value} km`;
+}
+
+async function converterLocalidadeEmLatLng(endereco) {
+    if (!endereco) {
+        return null;
+    }
+
+    const chave = normalizarTexto(endereco);
+    if (cacheGeocoding.has(chave)) {
+        return cacheGeocoding.get(chave);
+    }
+
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            cacheGeocoding.set(chave, result);
+            return result;
+        }
+    } catch (error) {
+        console.error('Erro na geocodificação:', error);
+    }
+
+    cacheGeocoding.set(chave, null);
+    return null;
+}
+
+function calcularDistanciaKm(origem, destino) {
+    if (!origem || !destino) {
+        return null;
+    }
+
+    const toRad = (valor) => (valor * Math.PI) / 180;
+    const distanciaLat = toRad(destino.lat - origem.lat);
+    const distanciaLng = toRad(destino.lng - origem.lng);
+    const a = Math.sin(distanciaLat / 2) ** 2 + Math.cos(toRad(origem.lat)) * Math.cos(toRad(destino.lat)) * Math.sin(distanciaLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const raioTerraKm = 6371;
+    return raioTerraKm * c;
+}
+
+async function obterDistanciaServico(objeto) {
+    if (!usuarioLocalizacao || !objeto?.localidade) {
+        return null;
+    }
+
+    const destino = await converterLocalidadeEmLatLng(objeto.localidade);
+    if (!destino) {
+        return null;
+    }
+
+    return calcularDistanciaKm(usuarioLocalizacao, destino);
+}
+
+async function renderizarLista() {
     const lista = document.getElementById("lista");
 
     if (!lista) {
@@ -131,7 +262,7 @@ function renderizarLista() {
         return;
     }
 
-    const registrosFiltrados = filtrarRegistros();
+    const registrosFiltrados = await filtrarRegistros();
 
     if (registrosFiltrados.length === 0) {
         lista.innerHTML = renderizarSemResultados();
@@ -141,29 +272,40 @@ function renderizarLista() {
     lista.innerHTML = registrosFiltrados.map(renderizarCardServico).join("");
 }
 
-function filtrarRegistros() {
-    const localidade = normalizarTexto(document.getElementById("filtroLocalidade")?.value || "");
+async function filtrarRegistros() {
     const tipo = document.getElementById("filtroTipo")?.value || "";
     const faixaPreco = obterFaixaPrecoFiltro();
+    const distanciaMax = Number(document.getElementById("filtroDistancia")?.value || 0);
+    const distanciaAtiva = usuarioLocalizacao && distanciaMax > 0;
 
-    return registrosServicos.filter((objeto) => {
-        const localidadeOk = !localidade || normalizarTexto(objeto.localidade).includes(localidade);
+    const registrosComDistancia = await Promise.all(registrosServicos.map(async (objeto) => {
+        if (distanciaAtiva) {
+            objeto.distanciaKm = await obterDistanciaServico(objeto);
+        } else {
+            objeto.distanciaKm = null;
+        }
+        return objeto;
+    }));
+
+    return registrosComDistancia.filter((objeto) => {
         const tipoOk = !tipo || normalizarTexto(objeto.tipo) === normalizarTexto(tipo);
         const valorServico = obterValorServico(objeto);
         const precoOk = valorServico >= faixaPreco.minimo && valorServico <= faixaPreco.maximo;
+        const distanciaOk = !distanciaAtiva || (typeof objeto.distanciaKm === "number" && objeto.distanciaKm <= distanciaMax);
 
-        return localidadeOk && tipoOk && precoOk;
+        return tipoOk && precoOk && distanciaOk;
     });
 }
 
 function limparFiltros() {
-    const filtroLocalidade = document.getElementById("filtroLocalidade");
+    const filtroDistancia = document.getElementById("filtroDistancia");
     const filtroTipo = document.getElementById("filtroTipo");
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
 
-    if (filtroLocalidade) {
-        filtroLocalidade.value = "";
+    if (filtroDistancia) {
+        filtroDistancia.value = "25";
+        atualizarDistanciaSelecionada();
     }
 
     if (filtroTipo) {
@@ -350,9 +492,13 @@ function renderizarCardServico(objeto) {
                     <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
                     <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
 
-                    <p class="mb-4">
+                    <p class="mb-2">
                         <i class="bi bi-geo-alt text-success me-1"></i>
                         <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                    </p>
+                    <p class="mb-4">
+                        <i class="bi bi-clock-history text-secondary me-1"></i>
+                        <strong>Distância:</strong> ${objeto.distanciaKm != null ? escaparHtml(objeto.distanciaKm.toFixed(1) + " km") : "Não disponível"}
                     </p>
 
                     ${renderizarAcoes(objeto)}

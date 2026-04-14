@@ -6,8 +6,9 @@ $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 $usuario = $_POST['usuario'] ?? '';
 $senha = $_POST['senha'] ?? '';
+$endereco = trim($_POST['endereco'] ?? '');
 
-if (empty($usuario) || empty($senha)) {
+if (empty($usuario) || empty($senha) || empty($endereco)) {
     $retorno['mensagem'] = 'Preencha usuário e senha.';
 } else {
     $sql = "SELECT * FROM usuario WHERE usuario = ? AND senha = ?";
@@ -27,6 +28,7 @@ if (empty($usuario) || empty($senha)) {
             }
 
             $_SESSION['usuario'] = $tabela[0];
+            $_SESSION['usuario']['endereco'] = $endereco;
 
             $retorno['status'] = 'ok';
             $retorno['mensagem'] = 'Login efetuado com sucesso.';
