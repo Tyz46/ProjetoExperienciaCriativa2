@@ -1,11 +1,13 @@
 let usuarioLogado = null;
 let registrosServicos = [];
 
+// Quando a pagina terminar de carregar, prepara os filtros e busca os dados.
 document.addEventListener("DOMContentLoaded", () => {
     configurarFiltros();
     iniciarPagina();
 });
 
+// Valida a sessao, guarda o usuario logado e carrega os servicos.
 async function iniciarPagina() {
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
@@ -14,14 +16,17 @@ async function iniciarPagina() {
     carregarDados();
 }
 
+// Botao "Novo": somente prestador ou administrador pode cadastrar servico.
 document.getElementById("novo").addEventListener("click", () => {
     if (!podeCriar()) {
-        alert("Apenas prestadores podem criar serviços nesta aba.");
+        alert("Apenas prestadores podem criar servi\u00e7os nesta aba.");
         return;
     }
 
     window.location.href = "../html/prestador_novo.html";
 });
+
+// Botao "Sair": chama o PHP de logoff.
 document.getElementById("logoff").addEventListener("click", () => {
     logoff();
 });
@@ -37,6 +42,7 @@ async function logoff() {
     }
 }
 
+// Busca todos os servicos no banco e depois atualiza filtros e cards.
 async function carregarDados() {
     const lista = document.getElementById("lista");
 
@@ -58,17 +64,18 @@ async function carregarDados() {
         console.error(erro);
         registrosServicos = [];
         atualizarFiltroPreco();
-        lista.innerHTML = renderizarVazio("Não foi possível carregar os serviços agora.");
+        lista.innerHTML = renderizarVazio("Nao foi possivel carregar os servicos agora.");
     }
 }
 
+// Exclui um servico depois da confirmacao do usuario.
 async function excluir(id) {
     if (!podeCriar()) {
-        alert("Apenas prestadores podem excluir serviços nesta aba.");
+        alert("Apenas prestadores podem excluir servi\u00e7os nesta aba.");
         return;
     }
 
-    const confirmar = confirm("Deseja realmente excluir este serviço?");
+    const confirmar = confirm("Deseja realmente excluir este servi\u00e7o?");
     if (!confirmar) return;
 
     const retorno = await fetch("../php/prestadores_excluir.php?id=" + id, {
@@ -84,6 +91,7 @@ async function excluir(id) {
     }
 }
 
+// Liga os campos de filtro aos eventos da tela.
 function configurarFiltros() {
     const botao = document.getElementById("abrirFiltros");
     const painel = document.getElementById("filtrosPainel");
@@ -119,6 +127,7 @@ function configurarFiltros() {
     botaoLimpar?.addEventListener("click", limparFiltros);
 }
 
+// Decide se mostra vazio, sem resultados ou os cards filtrados.
 function renderizarLista() {
     const lista = document.getElementById("lista");
 
@@ -141,6 +150,7 @@ function renderizarLista() {
     lista.innerHTML = registrosFiltrados.map(renderizarCardServico).join("");
 }
 
+// Aplica os filtros de localidade, tipo e faixa de preco nos registros carregados.
 function filtrarRegistros() {
     const localidade = normalizarTexto(document.getElementById("filtroLocalidade")?.value || "");
     const tipo = document.getElementById("filtroTipo")?.value || "";
@@ -182,6 +192,7 @@ function limparFiltros() {
     renderizarLista();
 }
 
+// Calcula o maior preco cadastrado para ajustar o controle de faixa.
 function atualizarFiltroPreco() {
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -217,6 +228,7 @@ function atualizarFiltroPreco() {
     atualizarPrecoSelecionado();
 }
 
+// Atualiza o texto que aparece acima do filtro de preco.
 function atualizarPrecoSelecionado() {
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -259,6 +271,7 @@ function atualizarPrecoSelecionado() {
     filtroPrecoValor.textContent = formatarMoeda(minimo) + " a " + formatarMoeda(maximo);
 }
 
+// Evita que o preco minimo fique maior que o preco maximo.
 function ajustarFaixaPreco(alterado) {
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -281,6 +294,7 @@ function ajustarFaixaPreco(alterado) {
     }
 }
 
+// Pinta a parte selecionada no controle visual de faixa de preco.
 function atualizarTrilhoPreco(minimo, maximo, limite) {
     const trilho = document.querySelector(".filter-range-stack");
 
@@ -317,6 +331,7 @@ function obterValorServico(objeto) {
     return Number.isNaN(valor) ? 0 : valor;
 }
 
+// Remove acentos e deixa tudo minusculo para comparar texto com mais facilidade.
 function normalizarTexto(valor) {
     return String(valor || "")
         .normalize("NFD")
@@ -336,6 +351,7 @@ function renderizarSemResultados() {
     `;
 }
 
+// Monta o HTML de um card da listagem.
 function renderizarCardServico(objeto) {
     return `
         <div class="col-md-6 col-lg-4">
@@ -348,11 +364,11 @@ function renderizarCardServico(objeto) {
                     </div>
 
                     <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
-                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
+                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descri\u00e7\u00e3o cadastrada.")}</p>
 
                     <p class="mb-4">
                         <i class="bi bi-geo-alt text-success me-1"></i>
-                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "N\u00e3o informada")}
                     </p>
 
                     ${renderizarAcoes(objeto)}
@@ -369,9 +385,10 @@ function renderizarFoto(objeto) {
         return "";
     }
 
-    return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do serviço">`;
+    return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do servi\u00e7o">`;
 }
 
+// O campo foto pode vir como JSON de varias fotos ou como texto simples.
 function obterPrimeiraFoto(valor) {
     if (!valor) {
         return "";
@@ -398,12 +415,12 @@ function renderizarAcoes(objeto) {
     `;
 }
 
-function renderizarVazio(mensagem = "Clique em Novo serviço para adicionar o primeiro.") {
+function renderizarVazio(mensagem = "Clique em Novo servi\u00e7o para adicionar o primeiro.") {
     return `
         <div class="col-12">
             <div class="empty-state">
                 <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
-                <h4 class="mb-2">Nenhum serviço cadastrado</h4>
+                <h4 class="mb-2">Nenhum servi\u00e7o cadastrado</h4>
                 <p class="mb-0">${mensagem}</p>
             </div>
         </div>
@@ -425,16 +442,13 @@ function formatarMoeda(valor) {
 
 function formatarCategoria(categoria) {
     const categorias = {
-        Eletrica: "Elétrica",
-        Informatica: "Informática"
+        Eletrica: "El\u00e9trica",
+        Limpeza: "Limpeza",
+        Informatica: "Inform\u00e1tica",
+        Pintura: "Pintura",
+        Encanamento: "Encanamento",
+        Montagem: "Montagem"
     };
-
-    categorias.Eletrica = "El\u00e9trica";
-    categorias.Limpeza = "Limpeza";
-    categorias.Informatica = "Inform\u00e1tica";
-    categorias.Pintura = "Pintura";
-    categorias.Encanamento = "Encanamento";
-    categorias.Montagem = "Montagem";
 
     return categorias[categoria] || categoria || "Sem categoria";
 }
@@ -451,6 +465,7 @@ function podeCriar() {
     return usuarioLogado?.tipo === "prestador" || usuarioLogado?.tipo === "adm";
 }
 
+// Administrador pode gerenciar tudo; prestador comum so gerencia o que criou.
 function podeGerenciarRegistro(objeto) {
     return usuarioLogado?.tipo === "adm" || (
         usuarioLogado?.tipo === "prestador" &&
@@ -458,6 +473,7 @@ function podeGerenciarRegistro(objeto) {
     );
 }
 
+// Evita que textos vindos do banco quebrem o HTML ou abram brecha para script.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor;

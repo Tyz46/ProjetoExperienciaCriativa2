@@ -1,11 +1,13 @@
 let usuarioLogado = null;
 let registrosServicos = [];
 
+// Quando a pagina terminar de carregar, prepara os filtros e busca os dados.
 document.addEventListener("DOMContentLoaded", () => {
     configurarFiltros();
     iniciarPagina();
 });
 
+// Valida a sessao, guarda o usuario logado e carrega os chamados.
 async function iniciarPagina() {
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
@@ -14,6 +16,7 @@ async function iniciarPagina() {
     carregarDados();
 }
 
+// Botao "Novo": somente contratante ou administrador pode cadastrar chamado.
 document.getElementById("novo").addEventListener("click", () => {
     if (!podeCriar()) {
         alert("Apenas contratantes podem criar chamados nesta aba.");
@@ -23,6 +26,7 @@ document.getElementById("novo").addEventListener("click", () => {
     window.location.href = "../html/contratante_novo.html";
 });
 
+// Botao "Sair": chama o PHP de logoff.
 document.getElementById("logoff").addEventListener("click", () => {
     logoff();
 });
@@ -38,6 +42,7 @@ async function logoff() {
     }
 }
 
+// Busca todos os chamados no banco e depois atualiza filtros e cards.
 async function carregarDados() {
     const lista = document.getElementById("lista");
 
@@ -59,17 +64,18 @@ async function carregarDados() {
         console.error(erro);
         registrosServicos = [];
         atualizarFiltroPreco();
-        lista.innerHTML = renderizarVazio("Não foi possível carregar os serviços agora.");
+        lista.innerHTML = renderizarVazio("Nao foi possivel carregar os servicos agora.");
     }
 }
 
+// Exclui um chamado depois da confirmacao do usuario.
 async function excluir(id) {
     if (!podeCriar()) {
         alert("Apenas contratantes podem excluir chamados nesta aba.");
         return;
     }
 
-    const confirmar = confirm("Deseja realmente excluir este serviço?");
+    const confirmar = confirm("Deseja realmente excluir este servico?");
     if (!confirmar) return;
 
     const retorno = await fetch("../php/contratantes_excluir.php?id=" + id, {
@@ -85,6 +91,7 @@ async function excluir(id) {
     }
 }
 
+// Liga os campos de filtro aos eventos da tela.
 function configurarFiltros() {
     const botao = document.getElementById("abrirFiltros");
     const painel = document.getElementById("filtrosPainel");
@@ -120,6 +127,7 @@ function configurarFiltros() {
     botaoLimpar?.addEventListener("click", limparFiltros);
 }
 
+// Decide se mostra vazio, sem resultados ou os cards filtrados.
 function renderizarLista() {
     const lista = document.getElementById("lista");
 
@@ -142,6 +150,7 @@ function renderizarLista() {
     lista.innerHTML = registrosFiltrados.map(renderizarCardServico).join("");
 }
 
+// Aplica os filtros de localidade, tipo e faixa de preco nos registros carregados.
 function filtrarRegistros() {
     const localidade = normalizarTexto(document.getElementById("filtroLocalidade")?.value || "");
     const tipo = document.getElementById("filtroTipo")?.value || "";
@@ -183,6 +192,7 @@ function limparFiltros() {
     renderizarLista();
 }
 
+// Calcula o maior preco cadastrado para ajustar o controle de faixa.
 function atualizarFiltroPreco() {
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -218,6 +228,7 @@ function atualizarFiltroPreco() {
     atualizarPrecoSelecionado();
 }
 
+// Atualiza o texto que aparece acima do filtro de preco.
 function atualizarPrecoSelecionado() {
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -233,7 +244,7 @@ function atualizarPrecoSelecionado() {
     atualizarTrilhoPreco(minimo, maximo, limite);
 
     if (!limite || (minimo <= 0 && maximo >= limite)) {
-        filtroPrecoValor.textContent = "Todos os pre\u00e7os";
+        filtroPrecoValor.textContent = "Todos os precos";
         return;
     }
 
@@ -243,7 +254,7 @@ function atualizarPrecoSelecionado() {
     }
 
     if (minimo <= 0) {
-        filtroPrecoValor.textContent = "At\u00e9 " + formatarMoeda(maximo);
+        filtroPrecoValor.textContent = "Ate " + formatarMoeda(maximo);
         return;
     }
 
@@ -260,6 +271,7 @@ function atualizarPrecoSelecionado() {
     filtroPrecoValor.textContent = formatarMoeda(minimo) + " a " + formatarMoeda(maximo);
 }
 
+// Evita que o preco minimo fique maior que o preco maximo.
 function ajustarFaixaPreco(alterado) {
     const filtroPrecoMin = document.getElementById("filtroPrecoMin");
     const filtroPrecoMax = document.getElementById("filtroPrecoMax");
@@ -282,6 +294,7 @@ function ajustarFaixaPreco(alterado) {
     }
 }
 
+// Pinta a parte selecionada no controle visual de faixa de preco.
 function atualizarTrilhoPreco(minimo, maximo, limite) {
     const trilho = document.querySelector(".filter-range-stack");
 
@@ -318,6 +331,7 @@ function obterValorServico(objeto) {
     return Number.isNaN(valor) ? 0 : valor;
 }
 
+// Remove acentos e deixa tudo minusculo para comparar texto com mais facilidade.
 function normalizarTexto(valor) {
     return String(valor || "")
         .normalize("NFD")
@@ -337,6 +351,7 @@ function renderizarSemResultados() {
     `;
 }
 
+// Monta o HTML de um card da listagem.
 function renderizarCardServico(objeto) {
     return `
         <div class="col-md-6 col-lg-4">
@@ -349,11 +364,11 @@ function renderizarCardServico(objeto) {
                     </div>
 
                     <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
-                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
+                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descricao cadastrada.")}</p>
 
                     <p class="mb-4">
                         <i class="bi bi-geo-alt text-success me-1"></i>
-                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Nao informada")}
                     </p>
 
                     ${renderizarAcoes(objeto)}
@@ -373,6 +388,7 @@ function renderizarFoto(objeto) {
     return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do chamado">`;
 }
 
+// O campo foto pode vir como JSON de varias fotos ou como texto simples.
 function obterPrimeiraFoto(valor) {
     if (!valor) {
         return "";
@@ -399,12 +415,12 @@ function renderizarAcoes(objeto) {
     `;
 }
 
-function renderizarVazio(mensagem = "Clique em Novo serviço para adicionar o primeiro.") {
+function renderizarVazio(mensagem = "Clique em Novo servico para adicionar o primeiro.") {
     return `
         <div class="col-12">
             <div class="empty-state">
                 <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
-                <h4 class="mb-2">Nenhum serviço cadastrado</h4>
+                <h4 class="mb-2">Nenhum servi&ccedil;o cadastrado</h4>
                 <p class="mb-0">${mensagem}</p>
             </div>
         </div>
@@ -426,16 +442,13 @@ function formatarMoeda(valor) {
 
 function formatarCategoria(categoria) {
     const categorias = {
-        Eletrica: "Elétrica",
-        Informatica: "Informática"
+        Eletrica: "El\u00e9trica",
+        Limpeza: "Limpeza",
+        Informatica: "Inform\u00e1tica",
+        Pintura: "Pintura",
+        Encanamento: "Encanamento",
+        Montagem: "Montagem"
     };
-
-    categorias.Eletrica = "El\u00e9trica";
-    categorias.Limpeza = "Limpeza";
-    categorias.Informatica = "Inform\u00e1tica";
-    categorias.Pintura = "Pintura";
-    categorias.Encanamento = "Encanamento";
-    categorias.Montagem = "Montagem";
 
     return categorias[categoria] || categoria || "Sem categoria";
 }
@@ -452,6 +465,7 @@ function podeCriar() {
     return usuarioLogado?.tipo === "contratante" || usuarioLogado?.tipo === "adm";
 }
 
+// Administrador pode gerenciar tudo; contratante comum so gerencia o que criou.
 function podeGerenciarRegistro(objeto) {
     return usuarioLogado?.tipo === "adm" || (
         usuarioLogado?.tipo === "contratante" &&
@@ -459,6 +473,7 @@ function podeGerenciarRegistro(objeto) {
     );
 }
 
+// Evita que textos vindos do banco quebrem o HTML ou abram brecha para script.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor;

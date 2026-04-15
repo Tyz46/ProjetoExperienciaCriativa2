@@ -1,6 +1,7 @@
 let podeAlterar = false;
 let usuarioLogado = null;
 
+// Ao abrir a tela, valida a sessao e pega o ID que veio pela URL.
 document.addEventListener("DOMContentLoaded", async () => {
     const url = new URLSearchParams(window.location.search);
     const id = url.get("id");
@@ -10,13 +11,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     podeAlterar = usuarioLogado?.tipo === "prestador" || usuarioLogado?.tipo === "adm";
 
     if (!podeAlterar) {
-        alert("Apenas prestadores podem alterar serviços nesta aba.");
+        alert("Apenas prestadores podem alterar servi\u00e7os nesta aba.");
         window.location.href = "../html/prestador.html";
         return;
     }
 
     if (!id) {
-        alert("Serviço não encontrado.");
+        alert("Servico nao encontrado.");
         window.location.href = "../html/prestador.html";
         return;
     }
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     buscarDados(id);
 });
 
+// Busca o servico atual para preencher o formulario.
 async function buscarDados(id) {
     const retorno = await fetch("../php/prestadores_get.php?id=" + id);
     const resposta = await retorno.json();
@@ -32,7 +34,7 @@ async function buscarDados(id) {
         const reg = resposta.data[0];
 
         if (!podeGerenciarRegistro(reg)) {
-            alert("Você só pode alterar serviços criados pela sua conta.");
+            alert("Voce so pode alterar servicos criados pela sua conta.");
             window.location.href = "../html/prestador.html";
             return;
         }
@@ -49,10 +51,12 @@ async function buscarDados(id) {
     }
 }
 
+// Admin altera qualquer registro; usuario comum altera apenas o proprio.
 function podeGerenciarRegistro(registro) {
     return usuarioLogado?.tipo === "adm" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
 }
 
+// Botoes principais da tela.
 document.getElementById("enviar").addEventListener("click", alterar);
 
 document.getElementById("voltar").addEventListener("click", () => {
@@ -61,10 +65,11 @@ document.getElementById("voltar").addEventListener("click", () => {
 
 async function alterar() {
     if (!podeAlterar) {
-        alert("Apenas prestadores podem alterar serviços nesta aba.");
+        alert("Apenas prestadores podem alterar servi\u00e7os nesta aba.");
         return;
     }
 
+    // Pega os valores atuais do formulario.
     const nome = document.getElementById("nome").value.trim();
     const descricao = document.getElementById("descricao").value.trim();
     const tipo = document.getElementById("tipo").value;
@@ -77,6 +82,7 @@ async function alterar() {
         return;
     }
 
+    // Monta o POST que sera enviado ao PHP.
     const fd = new FormData();
     fd.append("nome", nome);
     fd.append("descricao", descricao);
@@ -92,7 +98,7 @@ async function alterar() {
     const resposta = await retorno.json();
 
     if (resposta.status === "ok") {
-        alert("Serviço alterado com sucesso!");
+        alert("Servico alterado com sucesso!");
         window.location.href = "../html/prestador.html";
     } else {
         alert("Erro: " + resposta.mensagem);
