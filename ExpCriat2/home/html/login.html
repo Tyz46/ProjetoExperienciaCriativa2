@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - ConsertaJá</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
+    <link href="../css/app.css" rel="stylesheet">
+</head>
+<body>
+<div class="site-shell">
+    <nav class="navbar bg-white shadow-sm">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="../html/login.html">
+                <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJá
+            </a>
+        </div>
+    </nav>
+
+    <main class="auth-main">
+        <div class="auth-card auth-card-sm">
+            <div class="auth-header">
+                <h2 class="fw-bold mb-2">Entrar</h2>
+                <p class="mb-0">Acesse sua conta para continuar na plataforma.</p>
+            </div>
+
+            <div class="auth-body bg-white">
+                <div class="mb-3">
+                    <label for="usuario" class="form-label fw-semibold">Usuário</label>
+                    <input type="text" id="usuario" class="form-control" placeholder="Digite seu usuário">
+                </div>
+
+                <div class="mb-4">
+                    <label for="senha" class="form-label fw-semibold">Senha</label>
+                    <input type="password" id="senha" class="form-control" placeholder="Digite sua senha">
+                </div>
+
+                <div class="d-grid gap-2">
+                    <button id="enviar" class="btn btn-brand btn-main">Entrar</button>
+                    <button id="novo" class="btn btn-outline-success btn-main">Criar conta</button>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <footer class="footer text-center py-3">
+        <p class="mb-0 text-secondary">© 2025 ConsertaJá. Todos os direitos reservados.</p>
+    </footer>
+
+    <script src="../js/login.js?v=sessao"></script>
+</div>
+</body>
+</html>
