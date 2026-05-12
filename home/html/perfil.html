@@ -26,33 +26,113 @@
         <div class="profile-card p-4 bg-white">
             <div class="card-body">
                 <p class="section-kicker">Conta</p>
-                <h2 class="page-title mb-4">Meu Perfil</h2>
+                <h2 class="page-title mb-3">Meu Perfil</h2>
 
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Nome</label>
-                        <input type="text" id="perfil_nome" class="form-control" readonly>
+                <!-- ABAS -->
+                <ul class="nav nav-tabs mb-4" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button 
+                            class="nav-link active"
+                            id="perfil-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#aba-perfil"
+                            type="button"
+                            role="tab"
+                        >
+                            <i class="bi bi-person-circle me-1"></i>
+                            Perfil
+                        </button>
+                    </li>
+
+                    <li class="nav-item" role="presentation">
+                        <button 
+                            class="nav-link"
+                            id="notificacoes-tab"
+                            data-bs-toggle="tab"
+                            data-bs-target="#aba-notificacoes"
+                            type="button"
+                            role="tab"
+                        >
+                            <i class="bi bi-bell me-1"></i>
+                            Notificações
+                        </button>
+                    </li>
+                </ul>
+
+                <!-- CONTEÚDO DAS ABAS -->
+                <div class="tab-content">
+
+                    <!-- ABA PERFIL -->
+                    <div 
+                        class="tab-pane fade show active"
+                        id="aba-perfil"
+                        role="tabpanel"
+                    >
+                        <div class="row g-3">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Nome</label>
+                                <input type="text" id="perfil_nome" class="form-control" readonly>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Usuário</label>
+                                <input type="text" id="perfil_usuario" class="form-control" readonly>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Email</label>
+                                <input type="text" id="perfil_email" class="form-control" readonly>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Telefone</label>
+                                <input type="text" id="perfil_telefone" class="form-control" readonly>
+                            </div>
+
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Tipo de conta</label>
+                                <input type="text" id="perfil_tipo" class="form-control" readonly>
+                            </div>
+                        </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Usuário</label>
-                        <input type="text" id="perfil_usuario" class="form-control" readonly>
+                    <!-- ABA NOTIFICAÇÕES -->
+                    <div 
+                        class="tab-pane fade"
+                        id="aba-notificacoes"
+                        role="tabpanel"
+                    >
+                        <div class="list-group" id="lista-notificacoes">
+
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>Novo serviço disponível</strong>
+                                    <p class="mb-1 text-secondary">
+                                        Um prestador respondeu sua solicitação.
+                                    </p>
+                                    <small class="text-muted">Há 5 minutos</small>
+                                </div>
+                                <i class="bi bi-info-circle text-primary"></i>
+                            </div>
+
+                            <div class="list-group-item d-flex justify-content-between align-items-start">
+                                <div>
+                                    <strong>Status atualizado</strong>
+                                    <p class="mb-1 text-secondary">
+                                        Seu serviço foi finalizado com sucesso.
+                                    </p>
+                                    <small class="text-muted">Ontem</small>
+                                </div>
+                                <i class="bi bi-check-circle text-success"></i>
+                            </div>
+
+                            <div class="list-group-item text-center text-secondary">
+                                Nenhuma notificação nova
+                            </div>
+
+                        </div>
                     </div>
 
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Email</label>
-                        <input type="text" id="perfil_email" class="form-control" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Telefone</label>
-                        <input type="text" id="perfil_telefone" class="form-control" readonly>
-                    </div>
-
-                    <div class="col-md-6">
-                        <label class="form-label fw-semibold">Tipo de conta</label>
-                        <input type="text" id="perfil_tipo" class="form-control" readonly>
-                    </div>
                 </div>
             </div>
         </div>
@@ -63,7 +143,9 @@
     </footer>
 
     <script src="../js/logoff.js"></script>
+    <script src="../js/perfil.js"></script>
     <script src="../js/valida_sessao.js?v=sessao"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         document.addEventListener("DOMContentLoaded", async () => {
             await valida_sessao();

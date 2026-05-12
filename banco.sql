@@ -23,5 +23,16 @@ CREATE TABLE servico (
     foto TEXT NULL
 );
 
+CREATE TABLE notificacao (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    id_usuario INT NOT NULL,
+    titulo VARCHAR(150) NOT NULL,
+    mensagem TEXT NOT NULL,
+    lida TINYINT(1) DEFAULT 0,
+    data_criacao DATETIME DEFAULT CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_usuario) REFERENCES usuario(id)
+);
+
 INSERT INTO usuario (nome, email, telefone, usuario, senha, tipo)
 VALUES ('Administrador', 'admin@consertaja.local', '00000000000', 'adm', 'adm123', 'adm');

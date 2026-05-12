@@ -403,16 +403,59 @@ function obterPrimeiraFoto(valor) {
 }
 
 function renderizarAcoes(objeto) {
-    if (!podeGerenciarRegistro(objeto)) {
-        return "";
+    // Dono do serviço
+    if (podeGerenciarRegistro(objeto)) {
+        return `
+            <div class="mt-auto d-flex gap-2">
+                <a href="contratante_alterar.html?id=${objeto.id}" 
+                   class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
+                <button class="btn btn-danger btn-sm w-50" 
+                        onclick="excluir(${objeto.id})">Excluir</button>
+            </div>
+        `;
     }
 
-    return `
-        <div class="mt-auto d-flex gap-2">
-            <a href="contratante_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
-            <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
-        </div>
-    `;
+    // Prestador contratando
+    if (usuarioLogado?.tipo === "prestador") {
+        return `
+            <div class="mt-auto">
+                <button class="btn btn-success w-100"
+                        onclick="contratarServico(${objeto.id}, ${objeto.id_usuario})">
+                    <i class="bi bi-check-circle me-1"></i>
+                    Contratar
+                </button>
+            </div>
+        `;
+    }
+
+    return "";
+}
+
+async function contratarServico(idServico, idContratante) {
+    const confirmar = confirm("Deseja contratar este serviço?");
+    if (!confirmar) return;
+
+    try {
+        const retorno = await fetch("../php/notificacao_criar.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+                id_servico: idServico,
+                id_usuario: idContratante
+            })
+        });
+
+        const resposta = await retorno.json();
+
+        if (resposta.status === "ok") {
+            alert("Notificação enviada com sucesso!");
+        } else {
+            alert("Erro: " + resposta.mensagem);
+        }
+    } catch (e) {
+        console.error(e);
+        alert("Erro ao enviar notificação.");
+    }
 }
 
 function renderizarVazio(mensagem = "Clique em Novo servico para adicionar o primeiro.") {
