@@ -23,7 +23,15 @@ CREATE TABLE servico (
     descricao_especialidades TEXT NULL,
     valor DECIMAL(10,2) NOT NULL,
     localidade VARCHAR(100) NOT NULL,
-    foto TEXT NULL
+    foto TEXT NULL,
+    nota_prestador TINYINT NULL,
+    comentario_prestador TEXT NULL,
+    nome_avaliador_prestador VARCHAR(150) NULL,
+    data_avaliacao_prestador DATETIME NULL,
+    nota_contratante TINYINT NULL,
+    comentario_contratante TEXT NULL,
+    nome_avaliador_contratante VARCHAR(150) NULL,
+    data_avaliacao_contratante DATETIME NULL
 );
 
 INSERT INTO usuario (nome, email, telefone, usuario, senha, tipo)

@@ -47,7 +47,7 @@ if (isset($_GET['id'])) {
          FROM servico s
          LEFT JOIN usuario u ON u.id = s.id_usuario
          WHERE s.origem = 'contratante'
-         ORDER BY s.id DESC"
+         ORDER BY (s.data_avaliacao_prestador IS NULL), s.data_avaliacao_prestador DESC, s.id DESC"
     );
 }
 

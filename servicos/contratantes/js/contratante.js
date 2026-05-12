@@ -1,7 +1,13 @@
 let usuarioLogado = null;
+let servicosContratantes = [];
+let servicoAvaliacao = null;
 
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPagina();
+    const botaoEnviarAvaliacao = document.getElementById("avaliacaoEnviar");
+    if (botaoEnviarAvaliacao) {
+        botaoEnviarAvaliacao.addEventListener("click", enviarAvaliacao);
+    }
 });
 
 async function iniciarPagina() {
@@ -51,7 +57,8 @@ async function carregarDados() {
         }
 
         const registros = Array.isArray(resposta.data) ? resposta.data : [];
-        if (registros.length === 0) {
+        servicosContratantes = ordenarServicosPorComentarioRecente(registros, 'data_avaliacao_prestador');
+        if (servicosContratantes.length === 0) {
             lista.innerHTML = renderizarVazio();
             return;
         }
@@ -104,10 +111,15 @@ function renderizarCardChamado(objeto) {
 
                     <p class="card-text text-muted service-description-clamp mb-3">${escaparHtml(objeto.descricao || "Sem descricao cadastrada.")}</p>
 
+                    <div class="service-rating mb-3">
+                        ${renderizarRating(objeto.nota_prestador, objeto.comentario_prestador, "Avaliação do contratante", objeto.nome_avaliador_prestador, objeto.data_avaliacao_prestador)}
+                    </div>
+
                     <p class="service-meta mb-4">
                         <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Nao informada")}</span>
                     </p>
 
+                    ${podeAvaliarServico(objeto) ? `<button class="btn btn-outline-primary btn-sm w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalAvaliacao" onclick="abrirModalAvaliacao(${objeto.id})">Avaliar contratante</button>` : ""}
                     ${renderizarAcoes(objeto)}
                 </div>
             </div>
@@ -197,6 +209,128 @@ function podeGerenciarRegistro(objeto) {
         usuarioLogado?.tipo === "contratante" &&
         Number(objeto.id_usuario) === Number(usuarioLogado?.id)
     );
+}
+
+function podeAvaliarServico(objeto) {
+    return usuarioLogado?.tipo === "prestador" && Number(objeto.id_usuario) !== Number(usuarioLogado?.id);
+}
+
+function abrirModalAvaliacao(id) {
+    const servico = servicosContratantes.find((item) => Number(item.id) === Number(id));
+    if (!servico) {
+        return;
+    }
+
+    servicoAvaliacao = servico;
+    document.getElementById("avaliacaoServicoId").value = id;
+    document.getElementById("avaliacaoTitulo").textContent = `Avaliar ${servico.nome || "serviço"}`;
+    document.getElementById("avaliacaoNota").value = servico.nota_prestador || "";
+    document.getElementById("avaliacaoComentario").value = servico.comentario_prestador || "";
+}
+
+async function enviarAvaliacao() {
+    if (!servicoAvaliacao) {
+        alert("Nenhum serviço selecionado para avaliação.");
+        return;
+    }
+
+    const id = document.getElementById("avaliacaoServicoId").value;
+    const nota = document.getElementById("avaliacaoNota").value;
+    const comentario = document.getElementById("avaliacaoComentario").value.trim();
+
+    if (!id || !nota) {
+        alert("Informe a nota da avaliação.");
+        return;
+    }
+
+    const fd = new FormData();
+    fd.append("id", id);
+    fd.append("nota", nota);
+    fd.append("comentario", comentario);
+
+    try {
+        const retorno = await fetch("../../php/avaliacao.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: fd
+        });
+        const resposta = await retorno.json();
+
+        if (resposta.status === "ok") {
+            alert("Avaliação enviada com sucesso.");
+            const servico = servicosContratantes.find((item) => Number(item.id) === Number(id));
+            if (servico) {
+                servico.nota_prestador = Number(nota);
+                servico.comentario_prestador = comentario;
+            }
+            const modal = bootstrap.Modal.getInstance(document.getElementById("modalAvaliacao"));
+            modal?.hide();
+            await carregarDados();
+        } else {
+            alert("Erro: " + resposta.mensagem);
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro ao enviar avaliação. Verifique o servidor.");
+    }
+}
+
+function renderizarRating(nota, comentario, label, autor, data) {
+    const notaNumero = Number(nota);
+    if (!notaNumero || notaNumero < 1) {
+        return `<div class="text-muted small">Sem avaliação ainda.</div>`;
+    }
+
+    const partes = [];
+    partes.push(`<strong>${escaparHtml(label)}:</strong>`);
+    partes.push(`<span class="ms-2">${renderizarEstrelas(notaNumero)}</span>`);
+
+    if (autor) {
+        partes.push(`<div class="small text-secondary mt-1">Avaliado por: ${escaparHtml(autor)}</div>`);
+    }
+    if (data) {
+        partes.push(`<div class="small text-secondary">${escaparHtml(formatarDataAvaliacao(data))}</div>`);
+    }
+    if (comentario) {
+        partes.push(`<p class="small text-muted mt-2">${escaparHtml(comentario)}</p>`);
+    }
+
+    return `<div class="rating-summary">${partes.join('')}</div>`;
+}
+
+function formatarDataAvaliacao(data) {
+    const dataObj = new Date(data);
+    if (Number.isNaN(dataObj.getTime())) {
+        return '';
+    }
+    return dataObj.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function ordenarServicosPorComentarioRecente(registros, campoData) {
+    return registros.slice().sort((a, b) => {
+        const dataA = a[campoData] ? new Date(a[campoData]).getTime() : 0;
+        const dataB = b[campoData] ? new Date(b[campoData]).getTime() : 0;
+
+        if (dataA === dataB) {
+            return Number(b.id) - Number(a.id);
+        }
+
+        return dataB - dataA;
+    });
+}
+
+function renderizarEstrelas(nota) {
+    const estrelas = [];
+    for (let i = 1; i <= 5; i += 1) {
+        estrelas.push(i <= nota ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-muted"></i>');
+    }
+    return estrelas.join("");
 }
 
 function escaparHtml(valor) {

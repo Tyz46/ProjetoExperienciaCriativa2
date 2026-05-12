@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,59 +9,102 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../../../home/css/app.css?v=comparacao" rel="stylesheet">
 </head>
+
 <body>
-<div class="site-shell">
+    <div class="site-shell">
 
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="../../../home/html/index.html">
-                <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJa
-            </a>
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="../../../home/html/index.html">
+                    <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJa
+                </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuServicos">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuServicos">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="collapse navbar-collapse" id="menuServicos">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                        <button type="button" class="nav-link dropdown-toggle border-0 bg-transparent" data-bs-toggle="dropdown">
-                            Servicos
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="../../prestadores/html/prestador.html">Oferecendo</a></li>
-                            <li><a class="dropdown-item" href="../html/contratante.html">Contratando</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                <div class="collapse navbar-collapse" id="menuServicos">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item dropdown">
+                            <button type="button" class="nav-link dropdown-toggle border-0 bg-transparent"
+                                data-bs-toggle="dropdown">
+                                Servicos
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="../../prestadores/html/prestador.html">Oferecendo</a>
+                                </li>
+                                <li><a class="dropdown-item" href="../html/contratante.html">Contratando</a></li>
+                            </ul>
+                        </li>
+                    </ul>
 
-                <button class="btn btn-outline-danger px-3" id="logoff">Sair</button>
+                    <button class="btn btn-outline-danger px-3" id="logoff">Sair</button>
+                </div>
+            </div>
+        </nav>
+
+        <main class="app-main container py-5">
+            <div class="page-heading">
+                <div>
+                    <p class="section-kicker">Contratantes</p>
+                    <h2 class="page-title mb-1">Chamados abertos por contratantes</h2>
+                    <p class="text-secondary mb-0">Veja apenas os pedidos publicados por clientes contratantes na
+                        plataforma.</p>
+                </div>
+                <button id="novo" class="btn btn-brand btn-main">
+                    <i class="bi bi-plus-circle me-1"></i>Novo chamado
+                </button>
+            </div>
+
+            <div id="lista" class="row g-4"></div>
+        </main>
+
+        <div class="modal fade" id="modalAvaliacao" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <p class="section-kicker mb-2">Avaliar contratante</p>
+                            <h4 id="avaliacaoTitulo" class="modal-title">Avaliar serviço</h4>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="avaliacaoServicoId">
+                        <div class="mb-3">
+                            <label for="avaliacaoNota" class="form-label">Nota</label>
+                            <select id="avaliacaoNota" class="form-select">
+                                <option value="" selected disabled>Selecione uma nota</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="avaliacaoComentario" class="form-label">Comentário</label>
+                            <textarea id="avaliacaoComentario" class="form-control" rows="4"
+                                placeholder="Conte como foi o atendimento, comunicação e o fechamento do trabalho."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-brand" id="avaliacaoEnviar">Enviar avaliação</button>
+                    </div>
+                </div>
             </div>
         </div>
-    </nav>
 
-    <main class="app-main container py-5">
-        <div class="page-heading">
-            <div>
-                <p class="section-kicker">Contratantes</p>
-                <h2 class="page-title mb-1">Chamados abertos por contratantes</h2>
-                <p class="text-secondary mb-0">Veja apenas os pedidos publicados por clientes contratantes na plataforma.</p>
-            </div>
-            <button id="novo" class="btn btn-brand btn-main">
-                <i class="bi bi-plus-circle me-1"></i>Novo chamado
-            </button>
-        </div>
+        <footer class="footer py-3 text-center mt-5">
+            <p class="mb-1 text-secondary">© 2025 ConsertaJa. Todos os direitos reservados.</p>
+        </footer>
 
-        <div id="lista" class="row g-4"></div>
-    </main>
-
-    <footer class="footer py-3 text-center mt-5">
-        <p class="mb-1 text-secondary">© 2025 ConsertaJa. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/contratante.js?v=chamados"></script>
-    <script src="../js/valida_sessao.js?v=origem"></script>
-</div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="../js/contratante.js?v=chamados"></script>
+        <script src="../js/valida_sessao.js?v=origem"></script>
+    </div>
 </body>
+
 </html>
