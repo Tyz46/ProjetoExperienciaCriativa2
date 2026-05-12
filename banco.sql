@@ -18,6 +18,9 @@ CREATE TABLE servico (
     nome VARCHAR(150) NOT NULL,
     descricao TEXT NOT NULL,
     tipo VARCHAR(50) NOT NULL,
+    profissao VARCHAR(100) NULL,
+    habilidades TEXT NULL,
+    descricao_especialidades TEXT NULL,
     valor DECIMAL(10,2) NOT NULL,
     localidade VARCHAR(100) NOT NULL,
     foto TEXT NULL

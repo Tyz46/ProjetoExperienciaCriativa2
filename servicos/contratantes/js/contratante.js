@@ -9,7 +9,7 @@ async function iniciarPagina() {
     usuarioLogado = sessao.data;
 
     aplicarPermissoes();
-    carregarDados();
+    await carregarDados();
 }
 
 document.getElementById("novo").addEventListener("click", () => {
@@ -40,7 +40,9 @@ async function carregarDados() {
     const lista = document.getElementById("lista");
 
     try {
-        const retorno = await fetch("../php/contratantes_get.php");
+        const retorno = await fetch("../php/contratantes_get.php", {
+            credentials: "same-origin"
+        });
         const resposta = await retorno.json();
 
         if (resposta.status !== "ok") {
@@ -48,17 +50,16 @@ async function carregarDados() {
             return;
         }
 
-        const registros = resposta.data;
-
+        const registros = Array.isArray(resposta.data) ? resposta.data : [];
         if (registros.length === 0) {
             lista.innerHTML = renderizarVazio();
             return;
         }
 
-        lista.innerHTML = registros.map(renderizarCardServico).join("");
+        lista.innerHTML = registros.map(renderizarCardChamado).join("");
     } catch (erro) {
         console.error(erro);
-        lista.innerHTML = renderizarVazio("Não foi possível carregar os serviços agora.");
+        lista.innerHTML = renderizarVazio("Nao foi possivel carregar os chamados agora.");
     }
 }
 
@@ -68,7 +69,7 @@ async function excluir(id) {
         return;
     }
 
-    const confirmar = confirm("Deseja realmente excluir este serviço?");
+    const confirmar = confirm("Deseja realmente excluir este chamado?");
     if (!confirmar) return;
 
     const retorno = await fetch("../php/contratantes_excluir.php?id=" + id, {
@@ -78,15 +79,15 @@ async function excluir(id) {
 
     if (resposta.status === "ok") {
         alert(resposta.mensagem);
-        carregarDados();
+        await carregarDados();
     } else {
         alert("Erro: " + resposta.mensagem);
     }
 }
 
-function renderizarCardServico(objeto) {
+function renderizarCardChamado(objeto) {
     return `
-        <div class="col-md-6 col-lg-4">
+        <div class="col-md-6 col-xl-4">
             <div class="card service-card">
                 ${renderizarFoto(objeto)}
                 <div class="card-body d-flex flex-column">
@@ -95,12 +96,16 @@ function renderizarCardServico(objeto) {
                         <span class="service-price">${formatarMoeda(objeto.valor)}</span>
                     </div>
 
-                    <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
-                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
+                    <h5 class="card-title fw-bold mb-2">${escaparHtml(objeto.nome || "Sem nome")}</h5>
+                    <p class="text-secondary small mb-3">
+                        <i class="bi bi-person me-1"></i>
+                        ${escaparHtml(objeto.nome_usuario || "Contratante")}
+                    </p>
 
-                    <p class="mb-4">
-                        <i class="bi bi-geo-alt text-success me-1"></i>
-                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                    <p class="card-text text-muted service-description-clamp mb-3">${escaparHtml(objeto.descricao || "Sem descricao cadastrada.")}</p>
+
+                    <p class="service-meta mb-4">
+                        <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Nao informada")}</span>
                     </p>
 
                     ${renderizarAcoes(objeto)}
@@ -146,12 +151,12 @@ function renderizarAcoes(objeto) {
     `;
 }
 
-function renderizarVazio(mensagem = "Clique em Novo serviço para adicionar o primeiro.") {
+function renderizarVazio(mensagem = "Nenhum chamado de contratante foi encontrado no momento.") {
     return `
         <div class="col-12">
             <div class="empty-state">
                 <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
-                <h4 class="mb-2">Nenhum serviço cadastrado</h4>
+                <h4 class="mb-2">Nenhum chamado cadastrado</h4>
                 <p class="mb-0">${mensagem}</p>
             </div>
         </div>
@@ -172,12 +177,7 @@ function formatarMoeda(valor) {
 }
 
 function formatarCategoria(categoria) {
-    const categorias = {
-        Eletrica: "Elétrica",
-        Informatica: "Informática"
-    };
-
-    return categorias[categoria] || categoria || "Sem categoria";
+    return categoria || "Sem categoria";
 }
 
 function aplicarPermissoes() {

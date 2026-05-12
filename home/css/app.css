@@ -281,6 +281,141 @@ textarea.form-control {
     border-bottom: 1px solid rgba(215, 226, 234, 0.9);
 }
 
+.section-card,
+.comparison-toolbar,
+.comparison-panel {
+    border: 1px solid rgba(215, 226, 234, 0.9);
+    border-radius: var(--radius);
+    background: var(--color-surface);
+    box-shadow: var(--shadow-soft);
+}
+
+.section-card,
+.comparison-panel {
+    padding: 24px;
+}
+
+.comparison-toolbar {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 24px;
+    padding: 24px;
+}
+
+.comparison-filter {
+    width: 100%;
+    max-width: 260px;
+}
+
+.service-card-selected {
+    border-color: rgba(21, 128, 61, 0.48);
+    box-shadow: 0 0 0 2px rgba(21, 128, 61, 0.14), var(--shadow-soft);
+}
+
+.service-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px 18px;
+    color: var(--color-muted);
+}
+
+.service-description-clamp {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 3;
+}
+
+.skills-picker,
+.skills-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.skill-option,
+.skill-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: #eef7f5;
+    color: var(--color-brand-dark);
+    font-size: 0.9rem;
+    font-weight: 600;
+}
+
+.skill-option {
+    border: 1px solid rgba(21, 128, 61, 0.18);
+    cursor: pointer;
+}
+
+.skill-option input {
+    margin: 0;
+}
+
+.skill-chip.muted,
+.comparison-pill.muted {
+    background: #f3f6f8;
+    color: var(--color-muted);
+}
+
+.detail-block {
+    padding: 16px;
+    border: 1px solid rgba(215, 226, 234, 0.9);
+    border-radius: var(--radius);
+    background: #fbfdff;
+}
+
+.comparison-pill {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 8px 12px;
+    border-radius: 999px;
+    background: var(--color-brand-soft);
+    color: var(--color-brand-dark);
+    font-size: 0.9rem;
+    font-weight: 800;
+}
+
+.comparison-pill.success {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.compare-empty {
+    background: linear-gradient(180deg, #ffffff, #f8fcfa);
+}
+
+.compare-table th,
+.compare-table td {
+    padding: 14px 12px;
+    vertical-align: top;
+}
+
+.compare-table th:first-child {
+    min-width: 160px;
+    color: var(--color-brand-dark);
+}
+
+.modal-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 16px;
+}
+
+.empty-inline-state {
+    width: 100%;
+    padding: 16px;
+    border: 1px dashed var(--color-line);
+    border-radius: var(--radius);
+    background: #fff;
+    color: var(--color-muted);
+}
+
 .empty-state {
     padding: 44px 20px;
     border: 2px dashed var(--color-line);
@@ -321,13 +456,15 @@ textarea.form-control {
     }
 
     .page-heading,
-    .action-row {
+    .action-row,
+    .comparison-toolbar {
         align-items: stretch;
         flex-direction: column;
     }
 
     .action-row .btn,
-    .page-heading .btn {
+    .page-heading .btn,
+    .comparison-filter {
         width: 100%;
     }
 
