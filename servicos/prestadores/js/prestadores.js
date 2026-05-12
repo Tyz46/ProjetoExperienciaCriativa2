@@ -1,6 +1,7 @@
 let usuarioLogado = null;
 let registrosServicos = [];
 
+// Código para prestadores
 // Quando a pagina terminar de carregar, prepara os filtros e busca os dados.
 document.addEventListener("DOMContentLoaded", () => {
     configurarFiltros();

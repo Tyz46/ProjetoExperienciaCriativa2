@@ -1,6 +1,7 @@
 let podeAlterar = false;
 let usuarioLogado = null;
 
+// Código para prestadores
 // Ao abrir a tela, valida a sessao e pega o ID que veio pela URL.
 document.addEventListener("DOMContentLoaded", async () => {
     const url = new URLSearchParams(window.location.search);
