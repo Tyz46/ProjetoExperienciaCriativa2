@@ -59,6 +59,51 @@
             <div id="lista" class="row g-4"></div>
         </main>
 
+        <div class="modal fade" id="modalDetalheChamado" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <p class="section-kicker mb-2">Detalhe do chamado</p>
+                            <h4 id="modalDetalheChamadoTitulo" class="modal-title">Chamado</h4>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <div class="modal-detail-grid mb-4">
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Contratante</strong>
+                                <span id="modalDetalheChamadoContratante">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Valor</strong>
+                                <span id="modalDetalheChamadoValor">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Categoria</strong>
+                                <span id="modalDetalheChamadoCategoria">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Localidade</strong>
+                                <span id="modalDetalheChamadoLocalidade">-</span>
+                            </div>
+                        </div>
+
+                        <div class="detail-block mb-3">
+                            <strong class="d-block mb-2">Descricao do chamado</strong>
+                            <p id="modalDetalheChamadoDescricao" class="mb-0 text-muted">-</p>
+                        </div>
+
+                        <div class="detail-block mb-3">
+                            <strong class="d-block mb-2">Avaliacoes do contratante</strong>
+                            <div id="modalDetalheAvaliacaoMedia" class="text-muted small mb-2">-</div>
+                            <div id="modalDetalheAvaliacoesLista" class="text-muted small"></div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <div class="modal fade" id="modalAvaliacao" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-dialog-centered">
                 <div class="modal-content">

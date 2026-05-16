@@ -63,7 +63,7 @@ async function carregarDados() {
             return;
         }
 
-        lista.innerHTML = registros.map(renderizarCardChamado).join("");
+        lista.innerHTML = servicosContratantes.map(renderizarCardChamado).join("");
     } catch (erro) {
         console.error(erro);
         lista.innerHTML = renderizarVazio("Nao foi possivel carregar os chamados agora.");
@@ -119,8 +119,11 @@ function renderizarCardChamado(objeto) {
                         <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Nao informada")}</span>
                     </p>
 
-                    ${podeAvaliarServico(objeto) ? `<button class="btn btn-outline-primary btn-sm w-100 mb-3" data-bs-toggle="modal" data-bs-target="#modalAvaliacao" onclick="abrirModalAvaliacao(${objeto.id})">Avaliar contratante</button>` : ""}
-                    ${renderizarAcoes(objeto)}
+                    <div class="mt-auto d-flex flex-column gap-2">
+                        <button class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalDetalheChamado" onclick="abrirDetalheChamado(${objeto.id})">Ver detalhes</button>
+                        ${podeAvaliarServico(objeto) ? `<button class="btn btn-outline-primary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalAvaliacao" onclick="abrirModalAvaliacao(${objeto.id})">Avaliar contratante</button>` : ""}
+                        ${renderizarAcoes(objeto)}
+                    </div>
                 </div>
             </div>
         </div>
@@ -161,6 +164,89 @@ function renderizarAcoes(objeto) {
             <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
         </div>
     `;
+}
+
+function abrirDetalheChamado(id) {
+    const servico = servicosContratantes.find((item) => Number(item.id) === Number(id));
+    if (!servico) {
+        return;
+    }
+
+    document.getElementById("modalDetalheChamadoTitulo").textContent = servico.nome || "Chamado";
+    document.getElementById("modalDetalheChamadoContratante").textContent = servico.nome_usuario || "Contratante";
+    document.getElementById("modalDetalheChamadoValor").textContent = formatarMoeda(servico.valor);
+    document.getElementById("modalDetalheChamadoCategoria").textContent = formatarCategoria(servico.tipo);
+    document.getElementById("modalDetalheChamadoLocalidade").textContent = servico.localidade || "Nao informada";
+    document.getElementById("modalDetalheChamadoDescricao").textContent = servico.descricao || "Sem descricao cadastrada.";
+
+    const avaliacoesContratante = obterAvaliacoesDoContratante(servico.id_usuario);
+    document.getElementById("modalDetalheAvaliacaoMedia").innerHTML = renderizarAvaliacaoMedia(avaliacoesContratante);
+    document.getElementById("modalDetalheAvaliacoesLista").innerHTML = renderizarAvaliacoesDoContratante(avaliacoesContratante);
+}
+
+function obterAvaliacoesDoContratante(idUsuario) {
+    return servicosContratantes
+        .filter((item) => Number(item.id_usuario) === Number(idUsuario))
+        .filter((item) => {
+            const nota = Number(item.nota_prestador);
+            return !Number.isNaN(nota) && nota >= 1 && nota <= 5;
+        })
+        .sort((a, b) => {
+            const dataA = a.data_avaliacao_prestador ? new Date(a.data_avaliacao_prestador).getTime() : 0;
+            const dataB = b.data_avaliacao_prestador ? new Date(b.data_avaliacao_prestador).getTime() : 0;
+            return dataB - dataA;
+        });
+}
+
+function calcularMediaAvaliacoes(avaliacoes) {
+    const notas = avaliacoes
+        .map((item) => Number(item.nota_prestador))
+        .filter((nota) => !Number.isNaN(nota) && nota >= 1 && nota <= 5);
+
+    if (notas.length === 0) {
+        return 0;
+    }
+
+    const soma = notas.reduce((acc, nota) => acc + nota, 0);
+    return soma / notas.length;
+}
+
+function renderizarAvaliacaoMedia(avaliacoes) {
+    if (avaliacoes.length === 0) {
+        return `<div class="text-muted small">Este contratante ainda não possui avaliações.</div>`;
+    }
+
+    const media = calcularMediaAvaliacoes(avaliacoes);
+    const estrelas = renderizarEstrelas(Math.round(media));
+    return `
+        <div class="rating-summary">
+            <strong>Nota média:</strong>
+            <span class="ms-2">${estrelas}</span>
+            <span class="small text-secondary ms-2">${media.toFixed(1)} de 5 (${avaliacoes.length} avaliação${avaliacoes.length > 1 ? 'ões' : 'ão'})</span>
+        </div>
+    `;
+}
+
+function renderizarAvaliacoesDoContratante(avaliacoes) {
+    if (avaliacoes.length === 0) {
+        return `<div class="text-muted small">Nenhuma avaliação encontrada para este contratante.</div>`;
+    }
+
+    return avaliacoes.map((avaliacao) => {
+        const nota = Number(avaliacao.nota_prestador);
+        return `
+            <div class="mb-3 p-3 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div>
+                        <strong>${escaparHtml(avaliacao.nome || 'Chamado avaliado')}</strong>
+                        <div class="small text-secondary">${escaparHtml(avaliacao.nome_avaliador_prestador || 'Prestador')} · ${escaparHtml(formatarDataAvaliacao(avaliacao.data_avaliacao_prestador || ''))}</div>
+                    </div>
+                    <div>${renderizarEstrelas(nota)}</div>
+                </div>
+                ${avaliacao.comentario_prestador ? `<p class="small text-muted mb-0">${escaparHtml(avaliacao.comentario_prestador)}</p>` : '<div class="small text-secondary">Sem comentário.</div>'}
+            </div>
+        `;
+    }).join('');
 }
 
 function renderizarVazio(mensagem = "Nenhum chamado de contratante foi encontrado no momento.") {
