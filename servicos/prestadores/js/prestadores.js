@@ -348,8 +348,77 @@ function abrirDetalheOrcamento(id) {
     document.getElementById("modalDetalheLocalidade").textContent = servico.localidade || "Nao informada";
     document.getElementById("modalDetalheHabilidades").innerHTML = renderizarHabilidades(servico.habilidades);
     document.getElementById("modalDetalheEspecialidades").textContent = servico.descricao_especialidades || "Nao informadas.";
-    document.getElementById("modalDetalheAvaliacaoPrestador").innerHTML = renderizarRating(servico.nota_contratante, servico.comentario_contratante, "Avaliação do prestador", servico.nome_avaliador_contratante, servico.data_avaliacao_contratante);
+
+    const avaliacoesPrestador = obterAvaliacoesDoPrestador(servico.id_usuario);
+    document.getElementById("modalDetalheAvaliacaoMedia").innerHTML = renderizarAvaliacaoMedia(avaliacoesPrestador);
+    document.getElementById("modalDetalheAvaliacoesLista").innerHTML = renderizarAvaliacoesDoPrestador(avaliacoesPrestador);
+
     document.getElementById("modalDetalheDescricao").textContent = servico.descricao || "Sem descricao cadastrada.";
+}
+
+function obterAvaliacoesDoPrestador(idUsuario) {
+    return servicosPrestadores
+        .filter((item) => Number(item.id_usuario) === Number(idUsuario))
+        .filter((item) => {
+            const nota = Number(item.nota_contratante);
+            return !Number.isNaN(nota) && nota >= 1 && nota <= 5;
+        })
+        .sort((a, b) => {
+            const dataA = a.data_avaliacao_contratante ? new Date(a.data_avaliacao_contratante).getTime() : 0;
+            const dataB = b.data_avaliacao_contratante ? new Date(b.data_avaliacao_contratante).getTime() : 0;
+            return dataB - dataA;
+        });
+}
+
+function calcularMediaAvaliacoes(avaliacoes) {
+    const notas = avaliacoes
+        .map((item) => Number(item.nota_contratante))
+        .filter((nota) => !Number.isNaN(nota) && nota >= 1 && nota <= 5);
+
+    if (notas.length === 0) {
+        return 0;
+    }
+
+    const soma = notas.reduce((acc, nota) => acc + nota, 0);
+    return soma / notas.length;
+}
+
+function renderizarAvaliacaoMedia(avaliacoes) {
+    if (avaliacoes.length === 0) {
+        return `<div class="text-muted small">Este profissional ainda não possui avaliações.</div>`;
+    }
+
+    const media = calcularMediaAvaliacoes(avaliacoes);
+    const estrelas = renderizarEstrelas(Math.round(media));
+    return `
+        <div class="rating-summary">
+            <strong>Nota média:</strong>
+            <span class="ms-2">${estrelas}</span>
+            <span class="small text-secondary ms-2">${media.toFixed(1)} de 5 (${avaliacoes.length} avaliação${avaliacoes.length > 1 ? 'ões' : 'ão'})</span>
+        </div>
+    `;
+}
+
+function renderizarAvaliacoesDoPrestador(avaliacoes) {
+    if (avaliacoes.length === 0) {
+        return `<div class="text-muted small">Nenhuma avaliação encontrada para este profissional.</div>`;
+    }
+
+    return avaliacoes.map((avaliacao) => {
+        const nota = Number(avaliacao.nota_contratante);
+        return `
+            <div class="mb-3 p-3 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div>
+                        <strong>${escaparHtml(avaliacao.nome || 'Serviço avaliado')}</strong>
+                        <div class="small text-secondary">${escaparHtml(avaliacao.nome_avaliador_contratante || 'Contratante')} · ${escaparHtml(formatarDataAvaliacao(avaliacao.data_avaliacao_contratante || ''))}</div>
+                    </div>
+                    <div>${renderizarEstrelas(nota)}</div>
+                </div>
+                ${avaliacao.comentario_contratante ? `<p class="small text-muted mb-0">${escaparHtml(avaliacao.comentario_contratante)}</p>` : '<div class="small text-secondary">Sem comentário.</div>'}
+            </div>
+        `;
+    }).join('');
 }
 
 function podeAvaliarServico(objeto) {
