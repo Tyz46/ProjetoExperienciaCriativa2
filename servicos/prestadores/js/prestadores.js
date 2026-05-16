@@ -1,5 +1,6 @@
 let usuarioLogado = null;
 let servicosPrestadores = [];
+let mediasPrestador = new Map();
 let idsComparacao = [];
 let servicoAvaliacao = null;
 
@@ -39,6 +40,9 @@ function configurarFiltros() {
     document.getElementById("filtroCategoria").addEventListener("change", () => {
         renderizarLista();
     });
+    document.getElementById("filtroAvaliacaoMedia").addEventListener("input", () => {
+        renderizarLista();
+    });
 }
 
 async function logoff() {
@@ -71,6 +75,7 @@ async function carregarDados() {
 
         const registros = Array.isArray(resposta.data) ? resposta.data : [];
         servicosPrestadores = ordenarServicosPorComentarioRecente(registros, 'data_avaliacao_contratante');
+        mediasPrestador = calcularMediasPrestadores(servicosPrestadores);
         renderizarLista();
     } catch (erro) {
         console.error(erro);
@@ -86,7 +91,7 @@ function renderizarLista() {
     const registros = obterServicosFiltrados();
 
     if (registros.length === 0) {
-        lista.innerHTML = renderizarVazio("Nenhum servico encontrado para o filtro escolhido.");
+        lista.innerHTML = renderizarVazio(gerarMensagemVazio());
         atualizarContadorOrcamentos(0);
         renderizarPainelComparacao();
         return;
@@ -99,14 +104,57 @@ function renderizarLista() {
 
 function obterServicosFiltrados() {
     const categoria = document.getElementById("filtroCategoria").value;
+    const filtroAvaliacaoMedia = document.getElementById("filtroAvaliacaoMedia").value;
+    const valorAvaliacao = parseFloat(filtroAvaliacaoMedia);
 
     return servicosPrestadores.filter((servico) => {
-        if (!categoria) {
-            return true;
+        if (categoria && servico.tipo !== categoria) {
+            return false;
         }
 
-        return servico.tipo === categoria;
+        if (filtroAvaliacaoMedia && !Number.isNaN(valorAvaliacao)) {
+            const media = mediasPrestador.get(Number(servico.id_usuario)) || 0;
+            return media >= valorAvaliacao;
+        }
+
+        return true;
     });
+}
+
+function calcularMediasPrestadores(servicos) {
+    const acumulador = new Map();
+
+    servicos.forEach((servico) => {
+        const idUsuario = Number(servico.id_usuario);
+        const nota = Number(servico.nota_contratante);
+        if (Number.isNaN(idUsuario) || idUsuario <= 0 || Number.isNaN(nota) || nota < 1 || nota > 5) {
+            return;
+        }
+
+        const registro = acumulador.get(idUsuario) || { total: 0, count: 0 };
+        registro.total += nota;
+        registro.count += 1;
+        acumulador.set(idUsuario, registro);
+    });
+
+    const medias = new Map();
+    acumulador.forEach((registro, idUsuario) => {
+        medias.set(idUsuario, registro.total / registro.count);
+    });
+    return medias;
+}
+
+function gerarMensagemVazio() {
+    const filtroAvaliacaoMedia = document.getElementById("filtroAvaliacaoMedia").value;
+    const valorAvaliacao = parseFloat(filtroAvaliacaoMedia);
+    if (filtroAvaliacaoMedia && !Number.isNaN(valorAvaliacao)) {
+        return `Não há nenhum serviço com média maior ou igual a ${valorAvaliacao.toFixed(1)}`;
+    }
+    return "Nenhum serviço encontrado para o filtro escolhido.";
+}
+
+function obterMediaPrestador(idUsuario) {
+    return mediasPrestador.get(Number(idUsuario)) || 0;
 }
 
 function atualizarContadorOrcamentos(total) {
@@ -162,6 +210,11 @@ function renderizarCardServico(objeto) {
                     <div class="detail-block mb-3">
                         <strong class="d-block mb-2">Especialidades tecnicas</strong>
                         <span class="text-muted">${escaparHtml(resumirTexto(objeto.descricao_especialidades || "Nao informadas.", 120))}</span>
+                    </div>
+
+                    <div class="detail-block mb-3">
+                        <strong class="d-block mb-2">Média do prestador</strong>
+                        <span class="text-muted">${obterMediaPrestador(objeto.id_usuario) > 0 ? `${obterMediaPrestador(objeto.id_usuario).toFixed(1)} de 5` : "Sem média ainda"}</span>
                     </div>
 
                     <div class="service-rating mb-3">
