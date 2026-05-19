@@ -5,8 +5,11 @@ let usuarioEndereco = null;
 const cacheGeocoding = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
-    configurarFiltros();
     iniciarPagina();
+    const botaoEnviarAvaliacao = document.getElementById("avaliacaoEnviar");
+    if (botaoEnviarAvaliacao) {
+        botaoEnviarAvaliacao.addEventListener("click", enviarAvaliacao);
+    }
 });
 
 async function iniciarPagina() {
@@ -17,20 +20,31 @@ async function iniciarPagina() {
     await obterLocalizacaoUsuario();
     atualizarStatusLocalizacao();
     aplicarPermissoes();
-    carregarDados();
+    configurarFiltros();
+    await carregarDados();
 }
 
 document.getElementById("novo").addEventListener("click", () => {
     if (!podeCriar()) {
-        alert("Apenas prestadores podem criar serviços nesta aba.");
+        alert("Apenas prestadores podem criar servicos nesta aba.");
         return;
     }
 
     window.location.href = "../html/prestador_novo.html";
 });
+
 document.getElementById("logoff").addEventListener("click", () => {
     logoff();
 });
+
+function configurarFiltros() {
+    document.getElementById("filtroCategoria").addEventListener("change", () => {
+        renderizarLista();
+    });
+    document.getElementById("filtroAvaliacaoMedia").addEventListener("input", () => {
+        renderizarLista();
+    });
+}
 
 async function logoff() {
     const retorno = await fetch("../../../home/php/usuario_logoff.php");
@@ -47,34 +61,115 @@ async function carregarDados() {
     const lista = document.getElementById("lista");
 
     try {
-        const retorno = await fetch("../php/prestadores_get.php");
+        const retorno = await fetch("../php/prestadores_get.php", {
+            credentials: "same-origin"
+        });
         const resposta = await retorno.json();
 
         if (resposta.status !== "ok") {
-            registrosServicos = [];
-            atualizarFiltroPreco();
-            renderizarLista();
+            servicosPrestadores = [];
+            lista.innerHTML = renderizarVazio();
+            renderizarPainelComparacao();
+            atualizarContadorOrcamentos(0);
             return;
         }
 
-        registrosServicos = Array.isArray(resposta.data) ? resposta.data : [];
-        atualizarFiltroPreco();
+        const registros = Array.isArray(resposta.data) ? resposta.data : [];
+        servicosPrestadores = ordenarServicosPorComentarioRecente(registros, 'data_avaliacao_contratante');
+        mediasPrestador = calcularMediasPrestadores(servicosPrestadores);
         renderizarLista();
     } catch (erro) {
         console.error(erro);
-        registrosServicos = [];
-        atualizarFiltroPreco();
-        lista.innerHTML = renderizarVazio("Não foi possível carregar os serviços agora.");
+        servicosPrestadores = [];
+        lista.innerHTML = renderizarVazio("Nao foi possivel carregar os servicos agora.");
+        renderizarPainelComparacao();
+        atualizarContadorOrcamentos(0);
     }
+}
+
+function renderizarLista() {
+    const lista = document.getElementById("lista");
+    const registros = obterServicosFiltrados();
+
+    if (registros.length === 0) {
+        lista.innerHTML = renderizarVazio(gerarMensagemVazio());
+        atualizarContadorOrcamentos(0);
+        renderizarPainelComparacao();
+        return;
+    }
+
+    lista.innerHTML = registros.map(renderizarCardServico).join("");
+    atualizarContadorOrcamentos(registros.length);
+    renderizarPainelComparacao();
+}
+
+function obterServicosFiltrados() {
+    const categoria = document.getElementById("filtroCategoria").value;
+    const filtroAvaliacaoMedia = document.getElementById("filtroAvaliacaoMedia").value;
+    const valorAvaliacao = parseFloat(filtroAvaliacaoMedia);
+
+    return servicosPrestadores.filter((servico) => {
+        if (categoria && servico.tipo !== categoria) {
+            return false;
+        }
+
+        if (filtroAvaliacaoMedia && !Number.isNaN(valorAvaliacao)) {
+            const media = mediasPrestador.get(Number(servico.id_usuario)) || 0;
+            return media >= valorAvaliacao;
+        }
+
+        return true;
+    });
+}
+
+function calcularMediasPrestadores(servicos) {
+    const acumulador = new Map();
+
+    servicos.forEach((servico) => {
+        const idUsuario = Number(servico.id_usuario);
+        const nota = Number(servico.nota_contratante);
+        if (Number.isNaN(idUsuario) || idUsuario <= 0 || Number.isNaN(nota) || nota < 1 || nota > 5) {
+            return;
+        }
+
+        const registro = acumulador.get(idUsuario) || { total: 0, count: 0 };
+        registro.total += nota;
+        registro.count += 1;
+        acumulador.set(idUsuario, registro);
+    });
+
+    const medias = new Map();
+    acumulador.forEach((registro, idUsuario) => {
+        medias.set(idUsuario, registro.total / registro.count);
+    });
+    return medias;
+}
+
+function gerarMensagemVazio() {
+    const filtroAvaliacaoMedia = document.getElementById("filtroAvaliacaoMedia").value;
+    const valorAvaliacao = parseFloat(filtroAvaliacaoMedia);
+    if (filtroAvaliacaoMedia && !Number.isNaN(valorAvaliacao)) {
+        return `Não há nenhum serviço com média maior ou igual a ${valorAvaliacao.toFixed(1)}`;
+    }
+    return "Nenhum serviço encontrado para o filtro escolhido.";
+}
+
+function obterMediaPrestador(idUsuario) {
+    return mediasPrestador.get(Number(idUsuario)) || 0;
+}
+
+function atualizarContadorOrcamentos(total) {
+    const contador = document.getElementById("contadorOrcamentos");
+    contador.textContent = total === 1 ? "1 opcao disponivel para comparacao." : `${total} opcoes disponiveis para comparacao.`;
 }
 
 async function excluir(id) {
     if (!podeCriar()) {
-        alert("Apenas prestadores podem excluir serviços nesta aba.");
+        alert("Apenas prestadores podem excluir servicos nesta aba.");
         return;
     }
 
-    const confirmar = confirm("Deseja realmente excluir este serviço?");
+    const confirmar = confirm("Deseja realmente excluir este servico?");
     if (!confirmar) return;
 
     const retorno = await fetch("../php/prestadores_excluir.php?id=" + id, {
@@ -84,7 +179,7 @@ async function excluir(id) {
 
     if (resposta.status === "ok") {
         alert(resposta.mensagem);
-        carregarDados();
+        await carregarDados();
     } else {
         alert("Erro: " + resposta.mensagem);
     }
@@ -103,12 +198,15 @@ function configurarFiltros() {
         return;
     }
 
-    botao.addEventListener("click", () => {
-        const abrir = botao.getAttribute("aria-expanded") !== "true";
-        botao.setAttribute("aria-expanded", abrir ? "true" : "false");
-        botao.classList.toggle("is-open", abrir);
-        painel.hidden = !abrir;
-    });
+    return `
+        <div class="col-md-6 col-xl-4">
+            <div class="card service-card ${estaSelecionado ? "service-card-selected" : ""}">
+                ${renderizarFoto(objeto)}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <span class="service-badge">${escaparHtml(formatarCategoria(objeto.tipo))}</span>
+                        <span class="service-price">${formatarMoeda(objeto.valor)}</span>
+                    </div>
 
     filtroDistancia?.addEventListener("input", () => {
         atualizarDistanciaSelecionada();
@@ -253,23 +351,38 @@ async function obterDistanciaServico(objeto) {
 async function renderizarLista() {
     const lista = document.getElementById("lista");
 
-    if (!lista) {
-        return;
-    }
+                    <div class="skills-list mb-3">${renderizarHabilidades(objeto.habilidades)}</div>
 
-    if (registrosServicos.length === 0) {
-        lista.innerHTML = renderizarVazio();
-        return;
-    }
+                    <div class="detail-block mb-3">
+                        <strong class="d-block mb-2">Especialidades tecnicas</strong>
+                        <span class="text-muted">${escaparHtml(resumirTexto(objeto.descricao_especialidades || "Nao informadas.", 120))}</span>
+                    </div>
 
     const registrosFiltrados = await filtrarRegistros();
 
-    if (registrosFiltrados.length === 0) {
-        lista.innerHTML = renderizarSemResultados();
-        return;
-    }
+                    <div class="service-rating mb-3">
+                        ${renderizarRating(objeto.nota_contratante, objeto.comentario_contratante, "Avaliação do prestador", objeto.nome_avaliador_contratante, objeto.data_avaliacao_contratante)}
+                    </div>
 
-    lista.innerHTML = registrosFiltrados.map(renderizarCardServico).join("");
+                    <p class="service-meta mb-4">
+                        <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Nao informada")}</span>
+                    </p>
+
+                    <div class="mt-auto d-flex gap-2 mb-2">
+                        <button class="btn ${estaSelecionado ? "btn-outline-secondary" : "btn-outline-success"} btn-sm w-50" onclick="alternarComparacao(${objeto.id})">
+                            ${estaSelecionado ? "Remover" : "Comparar"}
+                        </button>
+                        <button class="btn btn-brand btn-sm w-50" data-bs-toggle="modal" data-bs-target="#modalDetalheOrcamento" onclick="abrirDetalheOrcamento(${objeto.id})">
+                            Ver detalhes
+                        </button>
+                    </div>
+
+                    ${podeAvaliarServico(objeto) ? `<button class="btn btn-outline-primary btn-sm w-100 mt-2" data-bs-toggle="modal" data-bs-target="#modalAvaliacao" onclick="abrirModalAvaliacao(${objeto.id})">Avaliar prestador</button>` : ""}
+                    ${renderizarAcoesGerenciamento(objeto)}
+                </div>
+            </div>
+        </div>
+    `;
 }
 
 async function filtrarRegistros() {
@@ -308,177 +421,346 @@ function limparFiltros() {
         atualizarDistanciaSelecionada();
     }
 
-    if (filtroTipo) {
-        filtroTipo.value = "";
+    try {
+        const fotos = JSON.parse(valor);
+        return Array.isArray(fotos) ? (fotos[0] || "") : "";
+    } catch (erro) {
+        return valor;
+    }
+}
+
+function renderizarAcoesGerenciamento(objeto) {
+    if (!podeGerenciarRegistro(objeto)) {
+        return "";
     }
 
-    if (filtroPrecoMin) {
-        filtroPrecoMin.value = "0";
+    return `
+        <div class="d-flex gap-2">
+            <a href="prestador_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
+            <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
+        </div>
+    `;
+}
+
+function alternarComparacao(id) {
+    const idNumerico = Number(id);
+    const indice = idsComparacao.indexOf(idNumerico);
+
+    if (indice >= 0) {
+        idsComparacao.splice(indice, 1);
+    } else {
+        if (idsComparacao.length >= LIMITE_COMPARACAO) {
+            alert("Voce pode comparar ate 3 servicos por vez.");
+            return;
+        }
+
+        idsComparacao.push(idNumerico);
     }
 
-    if (filtroPrecoMax) {
-        filtroPrecoMax.value = filtroPrecoMax.max || "0";
-    }
-
-    atualizarPrecoSelecionado();
     renderizarLista();
 }
 
-function atualizarFiltroPreco() {
-    const filtroPrecoMin = document.getElementById("filtroPrecoMin");
-    const filtroPrecoMax = document.getElementById("filtroPrecoMax");
-    const filtroPrecoMinimo = document.getElementById("filtroPrecoMinimo");
-    const filtroPrecoMaximo = document.getElementById("filtroPrecoMaximo");
+function renderizarPainelComparacao() {
+    const painel = document.getElementById("painelComparacao");
+    const selecionados = obterServicosSelecionados();
 
-    if (!filtroPrecoMin || !filtroPrecoMax) {
+    if (selecionados.length === 0) {
+        painel.innerHTML = `
+            <div class="comparison-panel compare-empty">
+                <h3 class="h5 mb-2">Quadro comparativo</h3>
+                <p class="mb-0 text-muted">Selecione servicos na lista para comparar valores, especialidades e descricao completa do orcamento.</p>
+            </div>
+        `;
         return;
     }
 
-    const maiorPreco = registrosServicos.reduce((maior, objeto) => {
-        return Math.max(maior, obterValorServico(objeto));
-    }, 0);
-    const limite = maiorPreco > 0 ? Math.ceil(maiorPreco / 10) * 10 : 0;
+    painel.innerHTML = `
+        <div class="comparison-panel">
+            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
+                <div>
+                    <p class="section-kicker mb-2">Comparacao ativa</p>
+                    <h3 class="h4 mb-1">Visao lado a lado dos orcamentos</h3>
+                    <p class="text-secondary mb-0">Compare custo-beneficio e abra o detalhe de qualquer opcao quando quiser.</p>
+                </div>
+                <div class="d-flex flex-wrap align-items-center gap-2">
+                    <span class="comparison-pill">${selecionados.length}/${LIMITE_COMPARACAO} selecionados</span>
+                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limparComparacao()">Limpar</button>
+                </div>
+            </div>
 
-    [filtroPrecoMin, filtroPrecoMax].forEach((filtro) => {
-        filtro.min = "0";
-        filtro.max = String(limite);
-        filtro.disabled = limite === 0;
-    });
-
-    filtroPrecoMin.value = "0";
-    filtroPrecoMax.value = String(limite);
-
-    if (filtroPrecoMinimo) {
-        filtroPrecoMinimo.textContent = "R$ 0";
-    }
-
-    if (filtroPrecoMaximo) {
-        filtroPrecoMaximo.textContent = limite > 0 ? formatarMoeda(limite) : "Sem valores";
-    }
-
-    atualizarPrecoSelecionado();
-}
-
-function atualizarPrecoSelecionado() {
-    const filtroPrecoMin = document.getElementById("filtroPrecoMin");
-    const filtroPrecoMax = document.getElementById("filtroPrecoMax");
-    const filtroPrecoValor = document.getElementById("filtroPrecoValor");
-
-    if (!filtroPrecoMin || !filtroPrecoMax || !filtroPrecoValor) {
-        return;
-    }
-
-    const limite = Number(filtroPrecoMax.max) || 0;
-    const minimo = Number(filtroPrecoMin.value) || 0;
-    const maximo = Number(filtroPrecoMax.value) || 0;
-    atualizarTrilhoPreco(minimo, maximo, limite);
-
-    if (!limite || (minimo <= 0 && maximo >= limite)) {
-        filtroPrecoValor.textContent = "Todos os pre\u00e7os";
-        return;
-    }
-
-    if (minimo <= 0 && maximo <= 0) {
-        filtroPrecoValor.textContent = "A negociar";
-        return;
-    }
-
-    if (minimo <= 0) {
-        filtroPrecoValor.textContent = "At\u00e9 " + formatarMoeda(maximo);
-        return;
-    }
-
-    if (maximo >= limite) {
-        filtroPrecoValor.textContent = "A partir de " + formatarMoeda(minimo);
-        return;
-    }
-
-    if (minimo === maximo) {
-        filtroPrecoValor.textContent = formatarMoeda(minimo);
-        return;
-    }
-
-    filtroPrecoValor.textContent = formatarMoeda(minimo) + " a " + formatarMoeda(maximo);
-}
-
-function ajustarFaixaPreco(alterado) {
-    const filtroPrecoMin = document.getElementById("filtroPrecoMin");
-    const filtroPrecoMax = document.getElementById("filtroPrecoMax");
-
-    if (!filtroPrecoMin || !filtroPrecoMax) {
-        return;
-    }
-
-    const minimo = Number(filtroPrecoMin.value) || 0;
-    const maximo = Number(filtroPrecoMax.value) || 0;
-
-    if (minimo <= maximo) {
-        return;
-    }
-
-    if (alterado === "min") {
-        filtroPrecoMax.value = filtroPrecoMin.value;
-    } else {
-        filtroPrecoMin.value = filtroPrecoMax.value;
-    }
-}
-
-function atualizarTrilhoPreco(minimo, maximo, limite) {
-    const trilho = document.querySelector(".filter-range-stack");
-
-    if (!trilho) {
-        return;
-    }
-
-    const inicio = limite > 0 ? Math.max(0, Math.min(100, (minimo / limite) * 100)) : 0;
-    const fim = limite > 0 ? Math.max(inicio, Math.min(100, (maximo / limite) * 100)) : 100;
-
-    trilho.style.setProperty("--filter-range-start", inicio + "%");
-    trilho.style.setProperty("--filter-range-end", fim + "%");
-}
-
-function obterFaixaPrecoFiltro() {
-    const filtroPrecoMin = document.getElementById("filtroPrecoMin");
-    const filtroPrecoMax = document.getElementById("filtroPrecoMax");
-
-    if (!filtroPrecoMin || !filtroPrecoMax || filtroPrecoMax.disabled) {
-        return {
-            minimo: 0,
-            maximo: Infinity
-        };
-    }
-
-    return {
-        minimo: Number(filtroPrecoMin.value) || 0,
-        maximo: Number(filtroPrecoMax.value) || 0
-    };
-}
-
-function obterValorServico(objeto) {
-    const valor = Number(objeto?.valor);
-    return Number.isNaN(valor) ? 0 : valor;
-}
-
-function normalizarTexto(valor) {
-    return String(valor || "")
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "")
-        .toLowerCase();
-}
-
-function renderizarSemResultados() {
-    return `
-        <div class="col-12">
-            <div class="empty-state">
-                <i class="bi bi-search fs-1 d-block mb-3"></i>
-                <h4 class="mb-2">Nenhum servi&ccedil;o encontrado</h4>
-                <p class="mb-0">Tente mudar a localidade, o tipo ou o pre&ccedil;o m&aacute;ximo.</p>
+            <div class="table-responsive">
+                <table class="table compare-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th>Criterio</th>
+                            ${selecionados.map((servico) => `<th>${escaparHtml(servico.nome || "Servico")}</th>`).join("")}
+                        </tr>
+                    </thead>
+                    <tbody>
+                        ${renderizarLinhaComparacao("Prestador", selecionados.map((servico) => escaparHtml(servico.nome_usuario || "Prestador")))}
+                        ${renderizarLinhaComparacao("Profissao", selecionados.map((servico) => escaparHtml(servico.profissao || "Nao informada")))}
+                        ${renderizarLinhaComparacao("Categoria", selecionados.map((servico) => escaparHtml(formatarCategoria(servico.tipo))))}
+                        ${renderizarLinhaComparacao("Valor", selecionados.map((servico) => escaparHtml(formatarMoeda(servico.valor))))}
+                        ${renderizarLinhaComparacao("Custo-beneficio", selecionados.map((servico) => renderizarIndicadorCusto(servico, selecionados)))}
+                        ${renderizarLinhaComparacao("Localidade", selecionados.map((servico) => escaparHtml(servico.localidade || "Nao informada")))}
+                        ${renderizarLinhaComparacao("Habilidades", selecionados.map((servico) => renderizarHabilidades(servico.habilidades)))}
+                        ${renderizarLinhaComparacao("Especialidades", selecionados.map((servico) => escaparHtml(resumirTexto(servico.descricao_especialidades || "Nao informadas.", 140))))}
+                        ${renderizarLinhaComparacao("Descricao do orcamento", selecionados.map((servico) => escaparHtml(resumirTexto(servico.descricao || "Sem descricao.", 180))))}
+                    </tbody>
+                </table>
             </div>
         </div>
     `;
 }
 
-function renderizarCardServico(objeto) {
+function renderizarLinhaComparacao(rotulo, colunas) {
+    return `
+        <tr>
+            <th>${rotulo}</th>
+            ${colunas.map((coluna) => `<td>${coluna}</td>`).join("")}
+        </tr>
+    `;
+}
+
+function renderizarIndicadorCusto(servico, selecionados) {
+    const valoresValidos = selecionados
+        .map((item) => Number(item.valor))
+        .filter((valor) => !Number.isNaN(valor) && valor > 0);
+
+    const valorAtual = Number(servico.valor);
+    if (valoresValidos.length === 0 || Number.isNaN(valorAtual) || valorAtual <= 0) {
+        return '<span class="comparison-pill muted">A negociar</span>';
+    }
+
+    const menorValor = Math.min(...valoresValidos);
+    if (valorAtual === menorValor) {
+        return '<span class="comparison-pill success">Menor valor</span>';
+    }
+
+    return '<span class="comparison-pill">Acima do menor valor</span>';
+}
+
+function obterServicosSelecionados() {
+    return idsComparacao
+        .map((id) => servicosPrestadores.find((servico) => Number(servico.id) === Number(id)))
+        .filter(Boolean);
+}
+
+function limparComparacao() {
+    idsComparacao = [];
+    renderizarLista();
+}
+
+function abrirDetalheOrcamento(id) {
+    const servico = servicosPrestadores.find((item) => Number(item.id) === Number(id));
+    if (!servico) {
+        return;
+    }
+
+    document.getElementById("modalDetalheTitulo").textContent = servico.nome || "Servico";
+    document.getElementById("modalDetalhePrestador").textContent = servico.nome_usuario || "Prestador";
+    document.getElementById("modalDetalheValor").textContent = formatarMoeda(servico.valor);
+    document.getElementById("modalDetalheProfissao").textContent = servico.profissao || "Nao informada";
+    document.getElementById("modalDetalheCategoria").textContent = formatarCategoria(servico.tipo);
+    document.getElementById("modalDetalheLocalidade").textContent = servico.localidade || "Nao informada";
+    document.getElementById("modalDetalheHabilidades").innerHTML = renderizarHabilidades(servico.habilidades);
+    document.getElementById("modalDetalheEspecialidades").textContent = servico.descricao_especialidades || "Nao informadas.";
+
+    const avaliacoesPrestador = obterAvaliacoesDoPrestador(servico.id_usuario);
+    document.getElementById("modalDetalheAvaliacaoMedia").innerHTML = renderizarAvaliacaoMedia(avaliacoesPrestador);
+    document.getElementById("modalDetalheAvaliacoesLista").innerHTML = renderizarAvaliacoesDoPrestador(avaliacoesPrestador);
+
+    document.getElementById("modalDetalheDescricao").textContent = servico.descricao || "Sem descricao cadastrada.";
+}
+
+function obterAvaliacoesDoPrestador(idUsuario) {
+    return servicosPrestadores
+        .filter((item) => Number(item.id_usuario) === Number(idUsuario))
+        .filter((item) => {
+            const nota = Number(item.nota_contratante);
+            return !Number.isNaN(nota) && nota >= 1 && nota <= 5;
+        })
+        .sort((a, b) => {
+            const dataA = a.data_avaliacao_contratante ? new Date(a.data_avaliacao_contratante).getTime() : 0;
+            const dataB = b.data_avaliacao_contratante ? new Date(b.data_avaliacao_contratante).getTime() : 0;
+            return dataB - dataA;
+        });
+}
+
+function calcularMediaAvaliacoes(avaliacoes) {
+    const notas = avaliacoes
+        .map((item) => Number(item.nota_contratante))
+        .filter((nota) => !Number.isNaN(nota) && nota >= 1 && nota <= 5);
+
+    if (notas.length === 0) {
+        return 0;
+    }
+
+    const soma = notas.reduce((acc, nota) => acc + nota, 0);
+    return soma / notas.length;
+}
+
+function renderizarAvaliacaoMedia(avaliacoes) {
+    if (avaliacoes.length === 0) {
+        return `<div class="text-muted small">Este profissional ainda não possui avaliações.</div>`;
+    }
+
+    const media = calcularMediaAvaliacoes(avaliacoes);
+    const estrelas = renderizarEstrelas(Math.round(media));
+    return `
+        <div class="rating-summary">
+            <strong>Nota média:</strong>
+            <span class="ms-2">${estrelas}</span>
+            <span class="small text-secondary ms-2">${media.toFixed(1)} de 5 (${avaliacoes.length} avaliação${avaliacoes.length > 1 ? 'ões' : 'ão'})</span>
+        </div>
+    `;
+}
+
+function renderizarAvaliacoesDoPrestador(avaliacoes) {
+    if (avaliacoes.length === 0) {
+        return `<div class="text-muted small">Nenhuma avaliação encontrada para este profissional.</div>`;
+    }
+
+    return avaliacoes.map((avaliacao) => {
+        const nota = Number(avaliacao.nota_contratante);
+        return `
+            <div class="mb-3 p-3 bg-light rounded">
+                <div class="d-flex justify-content-between align-items-start gap-2 mb-2">
+                    <div>
+                        <strong>${escaparHtml(avaliacao.nome || 'Serviço avaliado')}</strong>
+                        <div class="small text-secondary">${escaparHtml(avaliacao.nome_avaliador_contratante || 'Contratante')} · ${escaparHtml(formatarDataAvaliacao(avaliacao.data_avaliacao_contratante || ''))}</div>
+                    </div>
+                    <div>${renderizarEstrelas(nota)}</div>
+                </div>
+                ${avaliacao.comentario_contratante ? `<p class="small text-muted mb-0">${escaparHtml(avaliacao.comentario_contratante)}</p>` : '<div class="small text-secondary">Sem comentário.</div>'}
+            </div>
+        `;
+    }).join('');
+}
+
+function podeAvaliarServico(objeto) {
+    return usuarioLogado?.tipo === "contratante" && Number(objeto.id_usuario) !== Number(usuarioLogado?.id);
+}
+
+function abrirModalAvaliacao(id) {
+    const servico = servicosPrestadores.find((item) => Number(item.id) === Number(id));
+    if (!servico) {
+        return;
+    }
+
+    servicoAvaliacao = servico;
+    document.getElementById("avaliacaoServicoId").value = id;
+    document.getElementById("avaliacaoTitulo").textContent = `Avaliar ${servico.nome || "serviço"}`;
+    document.getElementById("avaliacaoNota").value = servico.nota_contratante || "";
+    document.getElementById("avaliacaoComentario").value = servico.comentario_contratante || "";
+}
+
+async function enviarAvaliacao() {
+    if (!servicoAvaliacao) {
+        alert("Nenhum serviço selecionado para avaliação.");
+        return;
+    }
+
+    const id = document.getElementById("avaliacaoServicoId").value;
+    const nota = document.getElementById("avaliacaoNota").value;
+    const comentario = document.getElementById("avaliacaoComentario").value.trim();
+
+    if (!id || !nota) {
+        alert("Informe a nota da avaliação.");
+        return;
+    }
+
+    const fd = new FormData();
+    fd.append("id", id);
+    fd.append("nota", nota);
+    fd.append("comentario", comentario);
+
+    try {
+        const retorno = await fetch("../../php/avaliacao.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: fd
+        });
+        const resposta = await retorno.json();
+
+        if (resposta.status === "ok") {
+            alert("Avaliação enviada com sucesso.");
+            const servico = servicosPrestadores.find((item) => Number(item.id) === Number(id));
+            if (servico) {
+                servico.nota_contratante = Number(nota);
+                servico.comentario_contratante = comentario;
+            }
+            const modal = bootstrap.Modal.getInstance(document.getElementById("modalAvaliacao"));
+            modal?.hide();
+            renderizarLista();
+        } else {
+            alert("Erro: " + resposta.mensagem);
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro ao enviar avaliação. Verifique o servidor.");
+    }
+}
+
+function renderizarRating(nota, comentario, label, autor, data) {
+    const notaNumero = Number(nota);
+    if (!notaNumero || notaNumero < 1) {
+        return `<div class="text-muted small">Sem avaliação ainda.</div>`;
+    }
+
+    const partes = [];
+    partes.push(`<strong>${escaparHtml(label)}:</strong>`);
+    partes.push(`<span class="ms-2">${renderizarEstrelas(notaNumero)}</span>`);
+
+    if (autor) {
+        partes.push(`<div class="small text-secondary mt-1">Avaliado por: ${escaparHtml(autor)}</div>`);
+    }
+    if (data) {
+        partes.push(`<div class="small text-secondary">${escaparHtml(formatarDataAvaliacao(data))}</div>`);
+    }
+    if (comentario) {
+        partes.push(`<p class="small text-muted mt-2">${escaparHtml(comentario)}</p>`);
+    }
+
+    return `<div class="rating-summary">${partes.join('')}</div>`;
+}
+
+function formatarDataAvaliacao(data) {
+    const dataObj = new Date(data);
+    if (Number.isNaN(dataObj.getTime())) {
+        return '';
+    }
+    return dataObj.toLocaleDateString('pt-BR', {
+        day: '2-digit',
+        month: '2-digit',
+        year: 'numeric',
+        hour: '2-digit',
+        minute: '2-digit'
+    });
+}
+
+function ordenarServicosPorComentarioRecente(registros, campoData) {
+    return registros.slice().sort((a, b) => {
+        const dataA = a[campoData] ? new Date(a[campoData]).getTime() : 0;
+        const dataB = b[campoData] ? new Date(b[campoData]).getTime() : 0;
+
+        if (dataA === dataB) {
+            return Number(b.id) - Number(a.id);
+        }
+
+        return dataB - dataA;
+    });
+}
+
+function renderizarEstrelas(nota) {
+    const estrelas = [];
+    for (let i = 1; i <= 5; i += 1) {
+        estrelas.push(i <= nota ? '<i class="bi bi-star-fill text-warning"></i>' : '<i class="bi bi-star text-muted"></i>');
+    }
+    return estrelas.join("");
+}
+
+function renderizarVazio(mensagem = "Nenhum servico de prestador foi encontrado no momento.") {
     return `
         <div class="col-md-6 col-lg-4">
             <div class="card service-card">
@@ -508,52 +790,35 @@ function renderizarCardServico(objeto) {
     `;
 }
 
-function renderizarFoto(objeto) {
-    const foto = obterPrimeiraFoto(objeto.foto);
+function renderizarHabilidades(valor) {
+    const habilidades = parsearHabilidades(valor);
 
-    if (!foto) {
-        return "";
+    if (habilidades.length === 0) {
+        return '<span class="skill-chip muted">Sem habilidades informadas</span>';
     }
 
-    return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do serviço">`;
+    return habilidades.map((habilidade) => `<span class="skill-chip">${escaparHtml(habilidade)}</span>`).join("");
 }
 
-function obterPrimeiraFoto(valor) {
+function parsearHabilidades(valor) {
     if (!valor) {
-        return "";
+        return [];
     }
 
     try {
-        const fotos = JSON.parse(valor);
-        return Array.isArray(fotos) ? (fotos[0] || "") : "";
+        const habilidades = JSON.parse(valor);
+        return Array.isArray(habilidades) ? habilidades : [];
     } catch (erro) {
-        return valor;
+        return [];
     }
 }
 
-function renderizarAcoes(objeto) {
-    if (!podeGerenciarRegistro(objeto)) {
-        return "";
+function resumirTexto(texto, limite = 120) {
+    if (!texto || texto.length <= limite) {
+        return texto || "";
     }
 
-    return `
-        <div class="mt-auto d-flex gap-2">
-            <a href="prestador_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
-            <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
-        </div>
-    `;
-}
-
-function renderizarVazio(mensagem = "Clique em Novo serviço para adicionar o primeiro.") {
-    return `
-        <div class="col-12">
-            <div class="empty-state">
-                <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
-                <h4 class="mb-2">Nenhum serviço cadastrado</h4>
-                <p class="mb-0">${mensagem}</p>
-            </div>
-        </div>
-    `;
+    return texto.slice(0, limite).trim() + "...";
 }
 
 function formatarMoeda(valor) {
@@ -570,19 +835,7 @@ function formatarMoeda(valor) {
 }
 
 function formatarCategoria(categoria) {
-    const categorias = {
-        Eletrica: "Elétrica",
-        Informatica: "Informática"
-    };
-
-    categorias.Eletrica = "El\u00e9trica";
-    categorias.Limpeza = "Limpeza";
-    categorias.Informatica = "Inform\u00e1tica";
-    categorias.Pintura = "Pintura";
-    categorias.Encanamento = "Encanamento";
-    categorias.Montagem = "Montagem";
-
-    return categorias[categoria] || categoria || "Sem categoria";
+    return categoria || "Sem categoria";
 }
 
 function aplicarPermissoes() {

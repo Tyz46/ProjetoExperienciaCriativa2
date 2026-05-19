@@ -1,55 +1,60 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Serviços Oferecidos - ConsertaJá</title>
+    <title>Servicos de Prestadores - ConsertaJa</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
-    <link href="../../../home/css/app.css?v=filtros" rel="stylesheet">
+    <link href="../../../home/css/app.css?v=comparacao" rel="stylesheet">
 </head>
+
 <body>
-<div class="site-shell">
+    <div class="site-shell">
 
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-        <div class="container">
-            <a class="navbar-brand" href="../../../home/html/index.html">
-                <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJá
-            </a>
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm">
+            <div class="container">
+                <a class="navbar-brand" href="../../../home/html/index.html">
+                    <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJa
+                </a>
 
-            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuServicos">
-                <span class="navbar-toggler-icon"></span>
-            </button>
+                <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#menuServicos">
+                    <span class="navbar-toggler-icon"></span>
+                </button>
 
-            <div class="collapse navbar-collapse" id="menuServicos">
-                <ul class="navbar-nav me-auto">
-                    <li class="nav-item dropdown">
-                        <button type="button" class="nav-link dropdown-toggle border-0 bg-transparent" data-bs-toggle="dropdown">
-                            Serviços
-                        </button>
-                        <ul class="dropdown-menu">
-                            <li><a class="dropdown-item" href="../html/prestador.html">Oferecendo</a></li>
-                            <li><a class="dropdown-item" href="../../contratantes/html/contratante.html">Contratando</a></li>
-                        </ul>
-                    </li>
-                </ul>
+                <div class="collapse navbar-collapse" id="menuServicos">
+                    <ul class="navbar-nav me-auto">
+                        <li class="nav-item dropdown">
+                            <button type="button" class="nav-link dropdown-toggle border-0 bg-transparent"
+                                data-bs-toggle="dropdown">
+                                Servicos
+                            </button>
+                            <ul class="dropdown-menu">
+                                <li><a class="dropdown-item" href="../html/prestador.html">Oferecendo</a></li>
+                                <li><a class="dropdown-item"
+                                        href="../../contratantes/html/contratante.html">Contratando</a></li>
+                            </ul>
+                        </li>
+                    </ul>
 
-                <button class="btn btn-outline-danger px-3" id="logoff">Sair</button>
+                    <button class="btn btn-outline-danger px-3" id="logoff">Sair</button>
+                </div>
             </div>
-        </div>
-    </nav>
+        </nav>
 
-    <main class="app-main container py-5">
-        <div class="page-heading">
-            <div>
-                <p class="section-kicker">Prestadores</p>
-                <h1 class="page-title">Serviços oferecidos</h1>
-                <p class="text-secondary mb-0">Cadastre e gerencie os serviços que você quer oferecer.</p>
+        <main class="app-main container py-5">
+            <div class="page-heading">
+                <div>
+                    <p class="section-kicker">Prestadores</p>
+                    <h1 class="page-title">Servicos oferecidos</h1>
+                    <p class="text-secondary mb-0">Compare orcamentos entre profissionais, veja detalhes completos e
+                        acompanhe os servicos publicados pelos prestadores.</p>
+                </div>
+                <button id="novo" class="btn btn-brand btn-main">
+                    <i class="bi bi-plus-circle me-1"></i>Novo servico
+                </button>
             </div>
-            <button id="novo" class="btn btn-brand btn-main">
-                <i class="bi bi-plus-circle me-1"></i>Novo serviço
-            </button>
-        </div>
 
         <section class="filter-box mb-4">
             <button class="filter-toggle" type="button" id="abrirFiltros" aria-expanded="false" aria-controls="filtrosPainel">
@@ -68,52 +73,111 @@
                         <div class="text-muted"><small id="localizacaoStatus">Aguardando permissão de localização...</small></div>
                     </div>
 
-                    <div class="col-md-4">
-                        <label for="filtroTipo" class="form-label">Tipo de trabalho</label>
-                        <select id="filtroTipo" class="form-select">
-                            <option value="">Todos os tipos</option>
-                            <option value="Eletrica">El&eacute;trica</option>
-                            <option value="Limpeza">Limpeza</option>
-                            <option value="Informatica">Inform&aacute;tica</option>
-                            <option value="Pintura">Pintura</option>
-                            <option value="Encanamento">Encanamento</option>
-                            <option value="Montagem">Montagem</option>
-                        </select>
+        <div class="modal fade" id="modalDetalheOrcamento" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <p class="section-kicker mb-2">Detalhe do orcamento</p>
+                            <h4 id="modalDetalheTitulo" class="modal-title">Servico</h4>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
                     </div>
+                    <div class="modal-body">
+                        <div class="modal-detail-grid mb-4">
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Prestador</strong>
+                                <span id="modalDetalhePrestador">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Valor</strong>
+                                <span id="modalDetalheValor">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Profissao</strong>
+                                <span id="modalDetalheProfissao">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Categoria</strong>
+                                <span id="modalDetalheCategoria">-</span>
+                            </div>
+                            <div class="detail-block">
+                                <strong class="d-block mb-2">Localidade</strong>
+                                <span id="modalDetalheLocalidade">-</span>
+                            </div>
+                        </div>
 
-                    <div class="col-md-4">
-                        <div class="d-flex justify-content-between gap-2">
-                            <span class="form-label mb-0">Faixa de pre&ccedil;o</span>
-                            <span class="filter-price-label" id="filtroPrecoValor">Todos os pre&ccedil;os</span>
+                        <div class="detail-block mb-3">
+                            <strong class="d-block mb-2">Habilidades tecnicas</strong>
+                            <div id="modalDetalheHabilidades" class="skills-list"></div>
                         </div>
-                        <div class="filter-range-stack">
-                            <span class="filter-range-fill" aria-hidden="true"></span>
-                            <input type="range" id="filtroPrecoMin" class="form-range filter-range filter-range-min" min="0" max="0" step="10" value="0" aria-label="Pre&ccedil;o m&iacute;nimo" disabled>
-                            <input type="range" id="filtroPrecoMax" class="form-range filter-range filter-range-max" min="0" max="0" step="10" value="0" aria-label="Pre&ccedil;o m&aacute;ximo" disabled>
-                        </div>
-                        <div class="filter-range-labels">
-                            <span id="filtroPrecoMinimo">R$ 0</span>
-                            <span id="filtroPrecoMaximo">Sem valores</span>
-                        </div>
-                    </div>
 
-                    <div class="col-12 d-flex justify-content-end">
-                        <button class="btn btn-outline-secondary btn-sm" type="button" id="limparFiltros">Limpar filtros</button>
+                        <div class="detail-block mb-3">
+                            <strong class="d-block mb-2">Descricao das especialidades</strong>
+                            <p id="modalDetalheEspecialidades" class="mb-0 text-muted">-</p>
+                        </div>
+
+                        <div class="detail-block mb-3">
+                            <strong class="d-block mb-2">Avaliacoes do profissional</strong>
+                            <div id="modalDetalheAvaliacaoMedia" class="text-muted small mb-2">-</div>
+                            <div id="modalDetalheAvaliacoesLista" class="text-muted small"></div>
+                        </div>
+
+                        <div class="detail-block">
+                            <strong class="d-block mb-2">Descricao completa do orcamento</strong>
+                            <p id="modalDetalheDescricao" class="mb-0 text-muted">-</p>
+                        </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
 
-        <div id="lista" class="row g-4"></div>
-    </main>
+        <div class="modal fade" id="modalAvaliacao" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <div>
+                            <p class="section-kicker mb-2">Avaliar prestador</p>
+                            <h4 id="avaliacaoTitulo" class="modal-title">Avaliar serviço</h4>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="avaliacaoServicoId">
+                        <div class="mb-3">
+                            <label for="avaliacaoNota" class="form-label">Nota</label>
+                            <select id="avaliacaoNota" class="form-select">
+                                <option value="" selected disabled>Selecione uma nota</option>
+                                <option value="1">1</option>
+                                <option value="2">2</option>
+                                <option value="3">3</option>
+                                <option value="4">4</option>
+                                <option value="5">5</option>
+                            </select>
+                        </div>
+                        <div class="mb-3">
+                            <label for="avaliacaoComentario" class="form-label">Comentário</label>
+                            <textarea id="avaliacaoComentario" class="form-control" rows="4"
+                                placeholder="Conte como foi o atendimento, pontualidade e qualidade do serviço."></textarea>
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-brand" id="avaliacaoEnviar">Enviar avaliação</button>
+                    </div>
+                </div>
+            </div>
+        </div>
 
-    <footer class="footer py-3 text-center mt-5">
-        <p class="mb-1 text-secondary">© 2025 ConsertaJá. Todos os direitos reservados.</p>
-    </footer>
+        <footer class="footer py-3 text-center mt-5">
+            <p class="mb-1 text-secondary">© 2025 ConsertaJa. Todos os direitos reservados.</p>
+        </footer>
 
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/prestadores.js?v=filtros"></script>
-    <script src="../js/valida_sessao.js?v=origem"></script>
-</div>
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="../js/prestadores.js?v=comparacao"></script>
+        <script src="../js/valida_sessao.js?v=origem"></script>
+    </div>
 </body>
+
 </html>

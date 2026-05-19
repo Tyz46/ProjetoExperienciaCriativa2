@@ -1,45 +1,80 @@
 <?php
-    session_start();
-    include_once('conexao.php');
+session_start();
+include_once('conexao.php');
 
+$retorno = [
+    'status' => '',
+    'mensagem' => '',
+    'data' => []
+];
+
+$filtrarMeus = isset($_GET['meus']) && $_GET['meus'] === '1';
+
+if ($filtrarMeus && !isset($_SESSION['usuario']['id'])) {
     $retorno = [
-        'status'    => '', // ok ou nok
-        'mensagem'  => '', // mensagem de sucesso ou erro
-        'data'      => []  // efetivamente o retorno
+        'status' => 'nok',
+        'mensagem' => 'Sessao nao encontrada.',
+        'data' => []
     ];
-
-    if(isset($_GET['id'])){
-        $id = $_GET['id'];
-        $stmt = $conexao->prepare("SELECT * FROM servico WHERE id = ? AND origem = 'contratante'");
-        $stmt->bind_param("i",$id);
-    }else{
-        $stmt = $conexao->prepare("SELECT * FROM servico WHERE origem = 'contratante' ORDER BY id DESC");
-    
-    }
-    $stmt->execute();
-    $resultado = $stmt->get_result();
-    
-    $tabela = [];
-    if($resultado->num_rows > 0){
-        while($linha = $resultado->fetch_assoc()){
-            $tabela[] = $linha;
-        }
-
-        $retorno = [
-            'status'    => 'ok', // ok ou nok
-            'mensagem'  => 'Registros encontrados', // mensagem de sucesso ou erro
-            'data'      => $tabela  // efetivamente o retorno
-        ];
-    }else{
-        $retorno = [
-            'status'    => 'nok', // ok ou nok
-            'mensagem'  => 'Nenhum registro encontrado', // mensagem de sucesso ou erro
-            'data'      => []  // efetivamente o retorno
-        ];
-    }
-
-    $stmt->close();
     $conexao->close();
-
     header("Content-type:application/json;charset:utf-8");
     echo json_encode($retorno);
+    exit;
+}
+
+if (isset($_GET['id'])) {
+    $id = (int) $_GET['id'];
+    $stmt = $conexao->prepare(
+        "SELECT s.*, u.nome AS nome_usuario
+         FROM servico s
+         LEFT JOIN usuario u ON u.id = s.id_usuario
+         WHERE s.id = ? AND s.origem = 'contratante'"
+    );
+    $stmt->bind_param("i", $id);
+} elseif ($filtrarMeus) {
+    $idUsuario = (int) $_SESSION['usuario']['id'];
+    $stmt = $conexao->prepare(
+        "SELECT s.*, u.nome AS nome_usuario
+         FROM servico s
+         LEFT JOIN usuario u ON u.id = s.id_usuario
+         WHERE s.origem = 'contratante' AND s.id_usuario = ?
+         ORDER BY s.id DESC"
+    );
+    $stmt->bind_param("i", $idUsuario);
+} else {
+    $stmt = $conexao->prepare(
+        "SELECT s.*, u.nome AS nome_usuario
+         FROM servico s
+         LEFT JOIN usuario u ON u.id = s.id_usuario
+         WHERE s.origem = 'contratante'
+         ORDER BY (s.data_avaliacao_prestador IS NULL), s.data_avaliacao_prestador DESC, s.id DESC"
+    );
+}
+
+$stmt->execute();
+$resultado = $stmt->get_result();
+
+$tabela = [];
+if ($resultado->num_rows > 0) {
+    while ($linha = $resultado->fetch_assoc()) {
+        $tabela[] = $linha;
+    }
+
+    $retorno = [
+        'status' => 'ok',
+        'mensagem' => 'Registros encontrados',
+        'data' => $tabela
+    ];
+} else {
+    $retorno = [
+        'status' => 'nok',
+        'mensagem' => 'Nenhum registro encontrado',
+        'data' => []
+    ];
+}
+
+$stmt->close();
+$conexao->close();
+
+header("Content-type:application/json;charset:utf-8");
+echo json_encode($retorno);
