@@ -56,38 +56,22 @@
                 </button>
             </div>
 
-            <section class="comparison-toolbar mb-4">
-                <div>
-                    <p class="section-kicker mb-2">Orcamentos disponiveis</p>
-                    <h3 class="h4 mb-1">Escolha ate 3 servicos para comparar</h3>
-                    <p id="contadorOrcamentos" class="text-secondary mb-0">Carregando opcoes...</p>
-                </div>
+        <section class="filter-box mb-4">
+            <button class="filter-toggle" type="button" id="abrirFiltros" aria-expanded="false" aria-controls="filtrosPainel">
+                <span><i class="bi bi-funnel me-2"></i>Filtros de pesquisa</span>
+                <i class="bi bi-chevron-down filter-toggle-icon"></i>
+            </button>
 
-                <div class="comparison-filter">
-                    <label for="filtroCategoria" class="form-label">Filtrar por categoria</label>
-                    <select id="filtroCategoria" class="form-select">
-                        <option value="">Todas as categorias</option>
-                        <option value="Eletrica">Eletrica</option>
-                        <option value="Limpeza">Limpeza</option>
-                        <option value="Informatica">Informatica</option>
-                        <option value="Pintura">Pintura</option>
-                        <option value="Encanamento">Encanamento</option>
-                        <option value="Montagem">Montagem</option>
-                    </select>
-                </div>
-
-                <div class="comparison-filter">
-                    <label for="filtroAvaliacaoMedia" class="form-label">Média mínima do prestador</label>
-                    <input id="filtroAvaliacaoMedia" class="form-control" type="number" min="0" max="5" step="0.1"
-                        placeholder="Ex: 4.2">
-                </div>
-            </section>
-
-            <section id="painelComparacao" class="mb-4"></section>
-            <section>
-                <div id="lista" class="row g-4"></div>
-            </section>
-        </main>
+            <div class="filter-panel" id="filtrosPainel" hidden>
+                <div class="row g-3 align-items-end">
+                    <div class="col-md-4">
+                        <label for="filtroDistancia" class="form-label">Distância máxima</label>
+                        <div class="d-flex align-items-center gap-3 mb-2">
+                            <input type="range" id="filtroDistancia" class="form-range" min="1" max="100" step="1" value="25" aria-label="Distância máxima">
+                            <span id="filtroDistanciaValor">25 km</span>
+                        </div>
+                        <div class="text-muted"><small id="localizacaoStatus">Aguardando permissão de localização...</small></div>
+                    </div>
 
         <div class="modal fade" id="modalDetalheOrcamento" tabindex="-1" aria-hidden="true">
             <div class="modal-dialog modal-lg modal-dialog-scrollable">

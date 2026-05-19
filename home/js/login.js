@@ -6,15 +6,17 @@ document.getElementById("novo").addEventListener("click", () => {
 async function consulta() {
     const usuario = document.getElementById("usuario").value.trim();
     const senha = document.getElementById("senha").value.trim();
+    const endereco = document.getElementById("endereco").value.trim();
 
-    if (!usuario || !senha) {
-        alert("Preencha usuário e senha.");
+    if (!usuario || !senha || !endereco) {
+        alert("Preencha usuário, senha e endereço.");
         return;
     }
 
     const fd = new FormData();
     fd.append("usuario", usuario);
     fd.append("senha", senha);
+    fd.append("endereco", endereco);
 
     try {
         const retorno = await fetch("../php/usuario_login.php", {

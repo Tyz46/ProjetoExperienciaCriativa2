@@ -1,10 +1,8 @@
 let usuarioLogado = null;
-let servicosPrestadores = [];
-let mediasPrestador = new Map();
-let idsComparacao = [];
-let servicoAvaliacao = null;
-
-const LIMITE_COMPARACAO = 3;
+let registrosServicos = [];
+let usuarioLocalizacao = null;
+let usuarioEndereco = null;
+const cacheGeocoding = new Map();
 
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPagina();
@@ -17,7 +15,10 @@ document.addEventListener("DOMContentLoaded", () => {
 async function iniciarPagina() {
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
+    usuarioEndereco = usuarioLogado?.endereco || null;
 
+    await obterLocalizacaoUsuario();
+    atualizarStatusLocalizacao();
     aplicarPermissoes();
     configurarFiltros();
     await carregarDados();
@@ -184,8 +185,18 @@ async function excluir(id) {
     }
 }
 
-function renderizarCardServico(objeto) {
-    const estaSelecionado = idsComparacao.includes(Number(objeto.id));
+function configurarFiltros() {
+    const botao = document.getElementById("abrirFiltros");
+    const painel = document.getElementById("filtrosPainel");
+    const filtroDistancia = document.getElementById("filtroDistancia");
+    const filtroTipo = document.getElementById("filtroTipo");
+    const filtroPrecoMin = document.getElementById("filtroPrecoMin");
+    const filtroPrecoMax = document.getElementById("filtroPrecoMax");
+    const botaoLimpar = document.getElementById("limparFiltros");
+
+    if (!botao || !painel) {
+        return;
+    }
 
     return `
         <div class="col-md-6 col-xl-4">
@@ -197,13 +208,148 @@ function renderizarCardServico(objeto) {
                         <span class="service-price">${formatarMoeda(objeto.valor)}</span>
                     </div>
 
-                    <h5 class="card-title fw-bold mb-2">${escaparHtml(objeto.nome || "Sem nome")}</h5>
-                    <p class="text-secondary small mb-3">
-                        <i class="bi bi-person-workspace me-1"></i>
-                        ${escaparHtml(objeto.nome_usuario || "Prestador")} - ${escaparHtml(objeto.profissao || "Profissao nao informada")}
-                    </p>
+    filtroDistancia?.addEventListener("input", () => {
+        atualizarDistanciaSelecionada();
+        renderizarLista();
+    });
+    filtroTipo?.addEventListener("change", renderizarLista);
+    filtroPrecoMin?.addEventListener("input", () => {
+        ajustarFaixaPreco("min");
+        atualizarPrecoSelecionado();
+        renderizarLista();
+    });
+    filtroPrecoMax?.addEventListener("input", () => {
+        ajustarFaixaPreco("max");
+        atualizarPrecoSelecionado();
+        renderizarLista();
+    });
+    botaoLimpar?.addEventListener("click", limparFiltros);
+}
 
-                    <p class="card-text text-muted service-description-clamp mb-3">${escaparHtml(objeto.descricao || "Sem descricao cadastrada.")}</p>
+function initDistanceFilter() {
+    // Função mantida para compatibilidade, mas não faz nada agora
+}
+
+async function obterLocalizacaoUsuario() {
+    if (usuarioEndereco) {
+        const coordenadas = await converterLocalidadeEmLatLng(usuarioEndereco);
+        if (coordenadas) {
+            usuarioLocalizacao = coordenadas;
+            return usuarioLocalizacao;
+        }
+    }
+
+    return new Promise((resolve) => {
+        if (!navigator.geolocation) {
+            resolve(null);
+            return;
+        }
+
+        navigator.geolocation.getCurrentPosition((posicao) => {
+            usuarioLocalizacao = {
+                lat: posicao.coords.latitude,
+                lng: posicao.coords.longitude
+            };
+            resolve(usuarioLocalizacao);
+        }, () => {
+            resolve(null);
+        }, {
+            enableHighAccuracy: true,
+            timeout: 10000,
+            maximumAge: 60000
+        });
+    });
+}
+
+function atualizarStatusLocalizacao() {
+    const status = document.getElementById("localizacaoStatus");
+    const filtroDistancia = document.getElementById("filtroDistancia");
+
+    if (!status) {
+        return;
+    }
+
+    if (!usuarioLocalizacao) {
+        status.textContent = usuarioEndereco
+            ? "Endereço informado, mas localização não pôde ser calculada. Verifique o endereço ou tente novamente mais tarde."
+            : "Localização ou endereço não disponível. Filtro de distância inativo.";
+        if (filtroDistancia) {
+            filtroDistancia.disabled = true;
+        }
+    } else {
+        status.textContent = "Filtro de distância ativado. Ajuste a distância para ver serviços próximos.";
+        if (filtroDistancia) {
+            filtroDistancia.disabled = false;
+        }
+    }
+}
+
+function atualizarDistanciaSelecionada() {
+    const filtroDistancia = document.getElementById("filtroDistancia");
+    const filtroDistanciaValor = document.getElementById("filtroDistanciaValor");
+
+    if (!filtroDistancia || !filtroDistanciaValor) {
+        return;
+    }
+
+    filtroDistanciaValor.textContent = `${filtroDistancia.value} km`;
+}
+
+async function converterLocalidadeEmLatLng(endereco) {
+    if (!endereco) {
+        return null;
+    }
+
+    const chave = normalizarTexto(endereco);
+    if (cacheGeocoding.has(chave)) {
+        return cacheGeocoding.get(chave);
+    }
+
+    try {
+        const response = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(endereco)}`);
+        const data = await response.json();
+        if (data && data.length > 0) {
+            const result = { lat: parseFloat(data[0].lat), lng: parseFloat(data[0].lon) };
+            cacheGeocoding.set(chave, result);
+            return result;
+        }
+    } catch (error) {
+        console.error('Erro na geocodificação:', error);
+    }
+
+    cacheGeocoding.set(chave, null);
+    return null;
+}
+
+function calcularDistanciaKm(origem, destino) {
+    if (!origem || !destino) {
+        return null;
+    }
+
+    const toRad = (valor) => (valor * Math.PI) / 180;
+    const distanciaLat = toRad(destino.lat - origem.lat);
+    const distanciaLng = toRad(destino.lng - origem.lng);
+    const a = Math.sin(distanciaLat / 2) ** 2 + Math.cos(toRad(origem.lat)) * Math.cos(toRad(destino.lat)) * Math.sin(distanciaLng / 2) ** 2;
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+    const raioTerraKm = 6371;
+    return raioTerraKm * c;
+}
+
+async function obterDistanciaServico(objeto) {
+    if (!usuarioLocalizacao || !objeto?.localidade) {
+        return null;
+    }
+
+    const destino = await converterLocalidadeEmLatLng(objeto.localidade);
+    if (!destino) {
+        return null;
+    }
+
+    return calcularDistanciaKm(usuarioLocalizacao, destino);
+}
+
+async function renderizarLista() {
+    const lista = document.getElementById("lista");
 
                     <div class="skills-list mb-3">${renderizarHabilidades(objeto.habilidades)}</div>
 
@@ -212,10 +358,7 @@ function renderizarCardServico(objeto) {
                         <span class="text-muted">${escaparHtml(resumirTexto(objeto.descricao_especialidades || "Nao informadas.", 120))}</span>
                     </div>
 
-                    <div class="detail-block mb-3">
-                        <strong class="d-block mb-2">Média do prestador</strong>
-                        <span class="text-muted">${obterMediaPrestador(objeto.id_usuario) > 0 ? `${obterMediaPrestador(objeto.id_usuario).toFixed(1)} de 5` : "Sem média ainda"}</span>
-                    </div>
+    const registrosFiltrados = await filtrarRegistros();
 
                     <div class="service-rating mb-3">
                         ${renderizarRating(objeto.nota_contratante, objeto.comentario_contratante, "Avaliação do prestador", objeto.nome_avaliador_contratante, objeto.data_avaliacao_contratante)}
@@ -242,19 +385,40 @@ function renderizarCardServico(objeto) {
     `;
 }
 
-function renderizarFoto(objeto) {
-    const foto = obterPrimeiraFoto(objeto.foto);
+async function filtrarRegistros() {
+    const tipo = document.getElementById("filtroTipo")?.value || "";
+    const faixaPreco = obterFaixaPrecoFiltro();
+    const distanciaMax = Number(document.getElementById("filtroDistancia")?.value || 0);
+    const distanciaAtiva = usuarioLocalizacao && distanciaMax > 0;
 
-    if (!foto) {
-        return "";
-    }
+    const registrosComDistancia = await Promise.all(registrosServicos.map(async (objeto) => {
+        if (distanciaAtiva) {
+            objeto.distanciaKm = await obterDistanciaServico(objeto);
+        } else {
+            objeto.distanciaKm = null;
+        }
+        return objeto;
+    }));
 
-    return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do servico">`;
+    return registrosComDistancia.filter((objeto) => {
+        const tipoOk = !tipo || normalizarTexto(objeto.tipo) === normalizarTexto(tipo);
+        const valorServico = obterValorServico(objeto);
+        const precoOk = valorServico >= faixaPreco.minimo && valorServico <= faixaPreco.maximo;
+        const distanciaOk = !distanciaAtiva || (typeof objeto.distanciaKm === "number" && objeto.distanciaKm <= distanciaMax);
+
+        return tipoOk && precoOk && distanciaOk;
+    });
 }
 
-function obterPrimeiraFoto(valor) {
-    if (!valor) {
-        return "";
+function limparFiltros() {
+    const filtroDistancia = document.getElementById("filtroDistancia");
+    const filtroTipo = document.getElementById("filtroTipo");
+    const filtroPrecoMin = document.getElementById("filtroPrecoMin");
+    const filtroPrecoMax = document.getElementById("filtroPrecoMax");
+
+    if (filtroDistancia) {
+        filtroDistancia.value = "25";
+        atualizarDistanciaSelecionada();
     }
 
     try {
@@ -598,11 +762,29 @@ function renderizarEstrelas(nota) {
 
 function renderizarVazio(mensagem = "Nenhum servico de prestador foi encontrado no momento.") {
     return `
-        <div class="col-12">
-            <div class="empty-state">
-                <i class="bi bi-briefcase fs-1 d-block mb-3"></i>
-                <h4 class="mb-2">Sem servicos para comparar</h4>
-                <p class="mb-0">${mensagem}</p>
+        <div class="col-md-6 col-lg-4">
+            <div class="card service-card">
+                ${renderizarFoto(objeto)}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
+                        <span class="service-badge">${escaparHtml(formatarCategoria(objeto.tipo))}</span>
+                        <span class="service-price">${formatarMoeda(objeto.valor)}</span>
+                    </div>
+
+                    <h5 class="card-title fw-bold">${escaparHtml(objeto.nome || "Sem nome")}</h5>
+                    <p class="card-text text-muted mb-3">${escaparHtml(objeto.descricao || "Sem descrição cadastrada.")}</p>
+
+                    <p class="mb-2">
+                        <i class="bi bi-geo-alt text-success me-1"></i>
+                        <strong>Localidade:</strong> ${escaparHtml(objeto.localidade || "Não informada")}
+                    </p>
+                    <p class="mb-4">
+                        <i class="bi bi-clock-history text-secondary me-1"></i>
+                        <strong>Distância:</strong> ${objeto.distanciaKm != null ? escaparHtml(objeto.distanciaKm.toFixed(1) + " km") : "Não disponível"}
+                    </p>
+
+                    ${renderizarAcoes(objeto)}
+                </div>
             </div>
         </div>
     `;
