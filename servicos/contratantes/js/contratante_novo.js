@@ -2,10 +2,10 @@ let podeCadastrar = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
     const sessao = await valida_sessao();
-    podeCadastrar = sessao.data?.tipo === "contratante" || sessao.data?.tipo === "adm";
+    podeCadastrar = sessao.data?.tipo === "cliente" || sessao.data?.tipo === "admin";
 
     if (!podeCadastrar) {
-        alert("Apenas contratantes podem criar chamados nesta aba.");
+        alert("Apenas clientes podem criar chamados nesta aba.");
         window.location.href = "../html/contratante.html";
     }
 });
@@ -18,7 +18,7 @@ document.getElementById("voltar").addEventListener("click", () => {
 
 async function cadastrar() {
     if (!podeCadastrar) {
-        alert("Apenas contratantes podem criar chamados nesta aba.");
+        alert("Apenas clientes podem criar chamados nesta aba.");
         return;
     }
 

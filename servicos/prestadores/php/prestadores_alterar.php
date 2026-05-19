@@ -1,35 +1,36 @@
 <?php
 session_start();
-include_once('conexao.php');
+require_once dirname(__DIR__, 3) . '/php/conexao.php';
+require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
+require_once dirname(__DIR__, 3) . '/php/servico_helpers.php';
 
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
-if (!isset($_SESSION['usuario']) || !in_array(($_SESSION['usuario']['tipo'] ?? ''), ['prestador', 'adm'], true)) {
+if (!usuarioTemTipo(['prestador', 'admin'])) {
     $retorno['mensagem'] = 'Apenas prestadores podem alterar servicos nesta aba.';
     $conexao->close();
-    header("Content-type:application/json;charset:utf-8");
+    header('Content-type:application/json;charset:utf-8');
     echo json_encode($retorno);
     exit;
 }
 
-$id = $_GET['id'] ?? '';
+$id = (int) ($_GET['id'] ?? 0);
 $nome = trim($_POST['nome'] ?? '');
 $descricao = trim($_POST['descricao'] ?? '');
-$tipo = trim($_POST['tipo'] ?? '');
+$categoria = trim($_POST['tipo'] ?? '');
 $profissao = trim($_POST['profissao'] ?? '');
 $descricaoEspecialidades = trim($_POST['descricao_especialidades'] ?? '');
 $habilidades = normalizarHabilidades($_POST['habilidades'] ?? []);
 $valor = trim($_POST['valor'] ?? '');
 $localidade = trim($_POST['localidade'] ?? '');
-$idUsuario = (int) $_SESSION['usuario']['id'];
-$ehAdmin = ($_SESSION['usuario']['tipo'] ?? '') === 'adm';
+$idUsuario = idUsuarioLogado();
+$admin = ehAdmin();
 
-if ($id === '') {
-    $retorno['mensagem'] = 'Nao foi possivel alterar o registro sem ID.';
-} elseif (
+if (
+    $id <= 0 ||
     $nome === '' ||
     $descricao === '' ||
-    $tipo === '' ||
+    $categoria === '' ||
     $profissao === '' ||
     count($habilidades) === 0 ||
     $valor === '' ||
@@ -37,16 +38,16 @@ if ($id === '') {
 ) {
     $retorno['mensagem'] = 'Preencha todos os campos obrigatorios.';
 } else {
-    $sqlPermissao = "SELECT id FROM servico WHERE id = ? AND origem = 'prestador'";
-    if (!$ehAdmin) {
-        $sqlPermissao .= " AND id_usuario = ?";
+    $sqlPermissao = "SELECT id, id_prestador FROM servico WHERE id = ? AND origem = 'prestador'";
+    if (!$admin) {
+        $sqlPermissao .= ' AND id_prestador = ?';
     }
 
     $stmtPermissao = $conexao->prepare($sqlPermissao);
-    if ($ehAdmin) {
-        $stmtPermissao->bind_param("i", $id);
+    if ($admin) {
+        $stmtPermissao->bind_param('i', $id);
     } else {
-        $stmtPermissao->bind_param("ii", $id, $idUsuario);
+        $stmtPermissao->bind_param('ii', $id, $idUsuario);
     }
     $stmtPermissao->execute();
     $resultadoPermissao = $stmtPermissao->get_result();
@@ -55,16 +56,22 @@ if ($id === '') {
         $retorno['mensagem'] = 'Voce so pode alterar servicos criados pela sua conta.';
         $stmtPermissao->close();
         $conexao->close();
-        header("Content-type:application/json;charset:utf-8");
+        header('Content-type:application/json;charset:utf-8');
         echo json_encode($retorno);
         exit;
     }
+
+    $servico = $resultadoPermissao->fetch_assoc();
+    $idPrestador = (int) $servico['id_prestador'];
     $stmtPermissao->close();
 
-    $habilidadesJson = json_encode($habilidades, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    $sql = "UPDATE servico SET nome = ?, descricao = ?, tipo = ?, profissao = ?, habilidades = ?, descricao_especialidades = ?, valor = ?, localidade = ? WHERE id = ? AND origem = 'prestador'";
-    if (!$ehAdmin) {
-        $sql .= " AND id_usuario = ?";
+    $sql = "
+        UPDATE servico
+        SET titulo = ?, descricao = ?, categoria = ?, valor = ?, localidade = ?
+        WHERE id = ? AND origem = 'prestador'
+    ";
+    if (!$admin) {
+        $sql .= ' AND id_prestador = ?';
     }
 
     $stmt = $conexao->prepare($sql);
@@ -72,36 +79,16 @@ if ($id === '') {
     if (!$stmt) {
         $retorno['mensagem'] = 'Erro na estrutura do banco: ' . $conexao->error;
     } else {
-        if ($ehAdmin) {
-            $stmt->bind_param(
-                "ssssssssi",
-                $nome,
-                $descricao,
-                $tipo,
-                $profissao,
-                $habilidadesJson,
-                $descricaoEspecialidades,
-                $valor,
-                $localidade,
-                $id
-            );
+        if ($admin) {
+            $stmt->bind_param('sssdsi', $nome, $descricao, $categoria, $valor, $localidade, $id);
         } else {
-            $stmt->bind_param(
-                "ssssssssii",
-                $nome,
-                $descricao,
-                $tipo,
-                $profissao,
-                $habilidadesJson,
-                $descricaoEspecialidades,
-                $valor,
-                $localidade,
-                $id,
-                $idUsuario
-            );
+            $stmt->bind_param('sssdsii', $nome, $descricao, $categoria, $valor, $localidade, $id, $idUsuario);
         }
 
         if ($stmt->execute()) {
+            upsertPerfilPrestador($conexao, $idPrestador, $profissao, $descricaoEspecialidades, $localidade);
+            sincronizarHabilidadesServico($conexao, $id, $habilidades);
+
             $retorno['status'] = 'ok';
             $retorno['mensagem'] = 'Registro alterado com sucesso.';
         } else {
@@ -114,25 +101,5 @@ if ($id === '') {
 
 $conexao->close();
 
-header("Content-type:application/json;charset:utf-8");
+header('Content-type:application/json;charset:utf-8');
 echo json_encode($retorno);
-
-function normalizarHabilidades($habilidades) {
-    if (!is_array($habilidades)) {
-        $habilidades = [$habilidades];
-    }
-
-    $habilidadesNormalizadas = [];
-
-    foreach ($habilidades as $habilidade) {
-        $habilidade = trim((string) $habilidade);
-
-        if ($habilidade === '' || in_array($habilidade, $habilidadesNormalizadas, true)) {
-            continue;
-        }
-
-        $habilidadesNormalizadas[] = $habilidade;
-    }
-
-    return $habilidadesNormalizadas;
-}

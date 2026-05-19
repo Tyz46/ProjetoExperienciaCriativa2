@@ -1,47 +1,50 @@
 <?php
-    include_once('conexao.php');
-    
-    $retorno = [
-        'status'    => '', // ok ou nok
-        'mensagem'  => '', // mensagem de sucesso ou erro
-        'data'      => []  // efetivamente o retorno
-    ];
+require_once dirname(__DIR__, 2) . '/php/conexao.php';
+require_once dirname(__DIR__, 2) . '/php/auth_senha.php';
 
-    if(isset($_GET['id'])){
-        $id = $_GET['id'];
-        
-        // As variáveis que eu ireir receber por $_POST;
-        $nome       = $_POST['nome'];
-        $usuario    = $_POST['usuario'];
-        $senha      = $_POST['senha'];
-        
-        $stmt = $conexao->prepare("UPDATE usuario SET nome = ?, usuario = ?, senha = ? WHERE id = ?"); // prepara a query
-        $stmt->bind_param("sssi",$nome,$usuario,$senha,$id);
-        $stmt->execute(); // executa a query
+$retorno = [
+    'status' => '',
+    'mensagem' => '',
+    'data' => [],
+];
 
-        if($stmt->affected_rows > 0){
-            $retorno = [
-                'status'    => 'ok', // ok ou nok
-                'mensagem'  => 'Registro alterado com sucesso', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
-        }else{
-            $retorno = [
-                'status'    => 'nok', // ok ou nok
-                'mensagem'  => 'Não foi possível alterar o registro', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
-        }
+if (isset($_GET['id'])) {
+    $id = (int) $_GET['id'];
+    $nome = trim($_POST['nome'] ?? '');
+    $username = trim($_POST['usuario'] ?? $_POST['username'] ?? '');
+    $senha = $_POST['senha'] ?? '';
 
-        $stmt->close();    
-    }else{
+    $senhaHash = hash_senha($senha);
+    $stmt = $conexao->prepare(
+        'UPDATE usuario SET nome = ?, username = ?, senha_hash = ? WHERE id = ?'
+    );
+    $stmt->bind_param('sssi', $nome, $username, $senhaHash, $id);
+    $stmt->execute();
+
+    if ($stmt->affected_rows > 0) {
         $retorno = [
-            'status'    => 'nok', // ok ou nok
-            'mensagem'  => 'Não foi possível alterar o registro sem ID', // mensagem de sucesso ou erro
-            'data'      => []  // efetivamente o retorno
+            'status' => 'ok',
+            'mensagem' => 'Registro alterado com sucesso',
+            'data' => [],
+        ];
+    } else {
+        $retorno = [
+            'status' => 'nok',
+            'mensagem' => 'Não foi possível alterar o registro',
+            'data' => [],
         ];
     }
-    $conexao->close();
 
-    header("Content-type:application/json;charset:utf-8");
-    echo json_encode($retorno);
+    $stmt->close();
+} else {
+    $retorno = [
+        'status' => 'nok',
+        'mensagem' => 'Não foi possível alterar o registro sem ID',
+        'data' => [],
+    ];
+}
+
+$conexao->close();
+
+header('Content-type:application/json;charset:utf-8');
+echo json_encode($retorno);

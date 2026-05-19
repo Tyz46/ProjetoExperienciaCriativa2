@@ -1,21 +1,22 @@
 <?php
 session_start();
-$retorno = ['status' => '','mensagem' => '','data' => []];
-if(isset($_SESSION['usuario'])){
-    $usuario = $_SESSION['usuario'];
-    unset($usuario['senha']);
+require_once __DIR__ . '/usuario_helpers.php';
 
+$retorno = ['status' => '', 'mensagem' => '', 'data' => []];
+
+if (isset($_SESSION['usuario'])) {
     $retorno = [
         'status' => 'ok',
         'mensagem' => '',
-        'data' => $usuario
+        'data' => sanitizarUsuarioSessao($_SESSION['usuario']),
     ];
-}else{
+} else {
     $retorno = [
         'status' => 'nok',
         'mensagem' => '',
-        'data' => []
+        'data' => [],
     ];
 }
-header("Content-type:application/json;charset:utf-8");
+
+header('Content-type:application/json;charset:utf-8');
 echo json_encode($retorno);

@@ -48,7 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
-    podeAlterar = usuarioLogado?.tipo === "prestador" || usuarioLogado?.tipo === "adm";
+    podeAlterar = usuarioLogado?.tipo === "prestador" || usuarioLogado?.tipo === "admin";
 
     if (!podeAlterar) {
         alert("Apenas prestadores podem alterar servicos nesta aba.");
@@ -102,7 +102,7 @@ async function buscarDados(id) {
 }
 
 function podeGerenciarRegistro(registro) {
-    return usuarioLogado?.tipo === "adm" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
+    return usuarioLogado?.tipo === "admin" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
 }
 
 document.getElementById("enviar").addEventListener("click", alterar);

@@ -7,10 +7,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
-    podeAlterar = usuarioLogado?.tipo === "contratante" || usuarioLogado?.tipo === "adm";
+    podeAlterar = usuarioLogado?.tipo === "cliente" || usuarioLogado?.tipo === "admin";
 
     if (!podeAlterar) {
-        alert("Apenas contratantes podem alterar chamados nesta aba.");
+        alert("Apenas clientes podem alterar chamados nesta aba.");
         window.location.href = "../html/contratante.html";
         return;
     }
@@ -59,7 +59,7 @@ document.getElementById("voltar").addEventListener("click", () => {
 
 async function alterar() {
     if (!podeAlterar) {
-        alert("Apenas contratantes podem alterar chamados nesta aba.");
+        alert("Apenas clientes podem alterar chamados nesta aba.");
         return;
     }
 
@@ -104,5 +104,5 @@ async function alterar() {
 }
 
 function podeGerenciarRegistro(registro) {
-    return usuarioLogado?.tipo === "adm" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
+    return usuarioLogado?.tipo === "admin" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
 }

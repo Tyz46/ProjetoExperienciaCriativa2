@@ -1,36 +1,50 @@
 <?php
-include_once('conexao.php');
+require_once dirname(__DIR__, 2) . '/php/conexao.php';
+require_once dirname(__DIR__, 2) . '/php/auth_senha.php';
+require_once dirname(__DIR__, 2) . '/php/usuario_helpers.php';
 
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
-$nome = $_POST['nome'] ?? '';
-$email = $_POST['email'] ?? '';
-$telefone = $_POST['telefone'] ?? '';
-$usuario = $_POST['usuario'] ?? '';
+$nome = trim($_POST['nome'] ?? '');
+$email = trim($_POST['email'] ?? '');
+$telefone = trim($_POST['telefone'] ?? '');
+$username = trim($_POST['usuario'] ?? $_POST['username'] ?? '');
 $senha = $_POST['senha'] ?? '';
-$tipo = $_POST['tipo'] ?? 'contratante';
+$tipo = normalizarTipoCadastro($_POST['tipo'] ?? 'cliente');
 
-if (empty($nome) || empty($email) || empty($telefone) || empty($usuario) || empty($senha)) {
+if ($nome === '' || $email === '' || $telefone === '' || $username === '' || $senha === '') {
     $retorno['mensagem'] = 'Preencha todos os campos obrigatórios.';
+} elseif (!in_array($tipo, ['cliente', 'prestador', 'admin'], true)) {
+    $retorno['mensagem'] = 'Tipo de conta inválido.';
 } else {
-    $sql = "INSERT INTO usuario (nome, email, telefone, usuario, senha, tipo) VALUES (?, ?, ?, ?, ?, ?)";
+    $sql = 'INSERT INTO usuario (nome, email, telefone, username, senha_hash, tipo) VALUES (?, ?, ?, ?, ?, ?)';
     $stmt = $conexao->prepare($sql);
 
-    // Se o prepare falhar, nós capturamos o erro do MySQL aqui!
     if (!$stmt) {
-        $retorno['mensagem'] = "Erro na estrutura do banco: " . $conexao->error;
+        $retorno['mensagem'] = 'Erro na estrutura do banco: ' . $conexao->error;
     } else {
-        $stmt->bind_param("ssssss", $nome, $email, $telefone, $usuario, $senha, $tipo);
-        
-        if ($stmt->execute()) {
-            if ($stmt->affected_rows > 0) {
-                $retorno['status'] = 'ok';
-                $retorno['mensagem'] = 'Usuário cadastrado com sucesso.';
-            } else {
-                $retorno['mensagem'] = 'Não foi possível cadastrar o usuário.';
+        $senhaHash = hash_senha($senha);
+        $stmt->bind_param('ssssss', $nome, $email, $telefone, $username, $senhaHash, $tipo);
+
+        if ($stmt->execute() && $stmt->affected_rows > 0) {
+            $idUsuario = (int) $conexao->insert_id;
+
+            if ($tipo === 'prestador') {
+                $stmtPerfil = $conexao->prepare(
+                    'INSERT INTO perfil_prestador (id_usuario, profissao, descricao, localidade)
+                     VALUES (?, ?, NULL, ?)'
+                );
+                $profissaoPadrao = 'A definir';
+                $localidadePadrao = 'A definir';
+                $stmtPerfil->bind_param('iss', $idUsuario, $profissaoPadrao, $localidadePadrao);
+                $stmtPerfil->execute();
+                $stmtPerfil->close();
             }
+
+            $retorno['status'] = 'ok';
+            $retorno['mensagem'] = 'Usuário cadastrado com sucesso.';
         } else {
-            $retorno['mensagem'] = "Erro ao executar inserção: " . $stmt->error;
+            $retorno['mensagem'] = 'Não foi possível cadastrar o usuário: ' . $stmt->error;
         }
         $stmt->close();
     }
@@ -38,5 +52,5 @@ if (empty($nome) || empty($email) || empty($telefone) || empty($usuario) || empt
 
 $conexao->close();
 
-header("Content-type:application/json;charset:utf-8");
+header('Content-type:application/json;charset:utf-8');
 echo json_encode($retorno);

@@ -1,65 +1,56 @@
 <?php
-    session_start();
-    include_once('conexao.php');
+session_start();
+require_once dirname(__DIR__, 3) . '/php/conexao.php';
+require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
 
-    $retorno = [
-        'status'    => '', // ok ou nok
-        'mensagem'  => '', // mensagem de sucesso ou erro
-        'data'      => []  // efetivamente o retorno
-    ];
+$retorno = [
+    'status' => 'nok',
+    'mensagem' => '',
+    'data' => [],
+];
 
-    if(!isset($_SESSION['usuario']) || !in_array(($_SESSION['usuario']['tipo'] ?? ''), ['contratante', 'adm'], true)){
-        $retorno = [
-            'status'    => 'nok',
-            'mensagem'  => 'Apenas contratantes podem excluir chamados nesta aba.',
-            'data'      => []
-        ];
-
-        $conexao->close();
-        header("Content-type:application/json;charset:utf-8");
-        echo json_encode($retorno);
-        exit;
-    }
-
-    $idUsuario = (int) $_SESSION['usuario']['id'];
-    $ehAdmin = ($_SESSION['usuario']['tipo'] ?? '') === 'adm';
-
-    if(isset($_GET['id'])){
-        $id = $_GET['id'];
-        $sql = "DELETE FROM servico WHERE id = ? AND origem = 'contratante'";
-        if(!$ehAdmin){
-            $sql .= " AND id_usuario = ?";
-        }
-
-        $stmt = $conexao->prepare($sql);
-        if($ehAdmin){
-            $stmt->bind_param("i",$id);
-        }else{
-            $stmt->bind_param("ii",$id,$idUsuario);
-        }
-        $stmt->execute();
-
-        if($stmt->affected_rows > 0){
-            $retorno = [
-                'status'    => 'ok', // ok ou nok
-                'mensagem'  => 'Registro excluido com sucesso', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
-        }else{
-            $retorno = [
-                'status'    => 'nok', // ok ou nok
-                'mensagem'  => 'Você só pode excluir chamados criados pela sua conta', // mensagem de sucesso ou erro
-                'data'      => []  // efetivamente o retorno
-            ];
-        }
-        $stmt->close();    
-    }else{
-        $retorno = [
-            'status'    => 'nok', // ok ou nok
-            'mensagem'  => 'Não foi possível excluir o registro SEM ID', // mensagem de sucesso ou erro
-            'data'      => []  // efetivamente o retorno
-        ];
-    }
+if (!usuarioTemTipo(['cliente', 'admin'])) {
+    $retorno['mensagem'] = 'Apenas clientes podem excluir chamados nesta aba.';
     $conexao->close();
-    header("Content-type:application/json;charset:utf-8");
+    header('Content-type:application/json;charset:utf-8');
     echo json_encode($retorno);
+    exit;
+}
+
+$id = (int) ($_GET['id'] ?? 0);
+$idUsuario = idUsuarioLogado();
+$admin = ehAdmin();
+
+if ($id <= 0) {
+    $retorno['mensagem'] = 'Nao foi possivel excluir o registro sem ID.';
+} else {
+    $sql = "DELETE FROM servico WHERE id = ? AND origem = 'cliente'";
+    if (!$admin) {
+        $sql .= ' AND id_prestador = ?';
+    }
+
+    $stmt = $conexao->prepare($sql);
+    if ($admin) {
+        $stmt->bind_param('i', $id);
+    } else {
+        $stmt->bind_param('ii', $id, $idUsuario);
+    }
+    $stmt->execute();
+
+    if ($stmt->affected_rows > 0) {
+        $retorno = [
+            'status' => 'ok',
+            'mensagem' => 'Registro excluido com sucesso',
+            'data' => [],
+        ];
+    } else {
+        $retorno['mensagem'] = 'Nao foi possivel excluir o registro';
+    }
+
+    $stmt->close();
+}
+
+$conexao->close();
+
+header('Content-type:application/json;charset:utf-8');
+echo json_encode($retorno);

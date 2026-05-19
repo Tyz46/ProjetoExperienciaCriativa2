@@ -43,7 +43,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     configurarHabilidades();
 
     const sessao = await valida_sessao();
-    podeCadastrar = sessao.data?.tipo === "prestador" || sessao.data?.tipo === "adm";
+    podeCadastrar = sessao.data?.tipo === "prestador" || sessao.data?.tipo === "admin";
 
     if (!podeCadastrar) {
         alert("Apenas prestadores podem criar servicos nesta aba.");
