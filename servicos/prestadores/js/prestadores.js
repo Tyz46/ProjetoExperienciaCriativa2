@@ -178,6 +178,8 @@ function renderizarCardServico(objeto) {
                         </button>
                     </div>
 
+                    ${renderizarBotaoSolicitacao(objeto)}
+
                     ${renderizarAcoesGerenciamento(objeto)}
                 </div>
             </div>
@@ -429,6 +431,77 @@ function podeGerenciarRegistro(objeto) {
         usuarioLogado?.tipo === "prestador" &&
         Number(objeto.id_usuario) === Number(usuarioLogado?.id)
     );
+}
+
+function podeSolicitarServico(objeto) {
+    if (!usuarioLogado) {
+        return false;
+    }
+    if (usuarioLogado.tipo !== "cliente" && usuarioLogado.tipo !== "admin") {
+        return false;
+    }
+    if (Number(objeto.id_usuario) === Number(usuarioLogado.id)) {
+        return false;
+    }
+    return true;
+}
+
+function renderizarBotaoSolicitacao(objeto) {
+    if (!podeSolicitarServico(objeto)) {
+        return "";
+    }
+
+    const nomeServico = (objeto.nome || "servico").replace(/'/g, "\\'");
+    return `
+        <button class="btn btn-outline-primary btn-sm w-100 mb-2" onclick="abrirModalSolicitacao(${objeto.id}, '${nomeServico}')">
+            <i class="bi bi-send me-1"></i>Enviar solicitacao
+        </button>
+    `;
+}
+
+let servicoSolicitacaoAtual = null;
+
+function abrirModalSolicitacao(idServico, nomeServico) {
+    servicoSolicitacaoAtual = Number(idServico);
+    document.getElementById("solicitacao_id_servico").value = String(idServico);
+    document.getElementById("modalSolicitacaoTitulo").textContent = `Solicitar: ${nomeServico}`;
+    document.getElementById("solicitacao_titulo").value = "";
+    document.getElementById("solicitacao_descricao").value = "";
+    document.getElementById("solicitacao_categoria").value = "";
+    document.getElementById("solicitacao_valor").value = "";
+    document.getElementById("solicitacao_localidade").value = "";
+
+    const modal = bootstrap.Modal.getOrCreateInstance(document.getElementById("modalSolicitacao"));
+    modal.show();
+}
+
+async function enviarSolicitacaoServico() {
+    const formData = new FormData();
+    formData.append("id_servico", document.getElementById("solicitacao_id_servico").value);
+    formData.append("titulo", document.getElementById("solicitacao_titulo").value.trim());
+    formData.append("descricao", document.getElementById("solicitacao_descricao").value.trim());
+    formData.append("categoria", document.getElementById("solicitacao_categoria").value);
+    formData.append("localidade", document.getElementById("solicitacao_localidade").value.trim());
+    formData.append("valor", document.getElementById("solicitacao_valor").value || "0");
+
+    try {
+        const retorno = await fetch("../../../home/php/fluxo_solicitacao.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData,
+        });
+        const resposta = await retorno.json();
+
+        if (resposta.status === "ok") {
+            alert(resposta.mensagem + " Acompanhe as respostas em Mensagens no seu perfil.");
+            bootstrap.Modal.getInstance(document.getElementById("modalSolicitacao"))?.hide();
+        } else {
+            alert("Erro: " + (resposta.mensagem || "Falha ao enviar."));
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Nao foi possivel enviar a solicitacao.");
+    }
 }
 
 function escaparHtml(valor) {

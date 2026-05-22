@@ -538,3 +538,33 @@ textarea.form-control {
     background: var(--color-surface);
     box-shadow: var(--shadow-soft);
 }
+
+.notification-item {
+    padding: 1rem 1.15rem;
+    border: 1px solid var(--color-line);
+    border-radius: var(--radius);
+    background: #fff;
+    margin-bottom: 1rem;
+}
+
+.notification-item.pending {
+    border-left: 4px solid var(--color-brand);
+}
+
+.notification-item .notification-meta {
+    font-size: 0.85rem;
+    color: var(--color-muted);
+}
+
+.notification-actions {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.notification-message {
+    white-space: pre-wrap;
+    color: var(--color-ink);
+    margin: 0.5rem 0 0;
+}

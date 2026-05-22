@@ -1,7 +1,10 @@
 let dadosPerfil = null;
+let notificacoesPerfil = [];
+let modalAvaliarInstancia = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await valida_sessao();
+    configurarModalAvaliacao();
     await carregarPerfil();
 });
 
@@ -28,6 +31,11 @@ async function carregarPerfil() {
 
         dadosPerfil = resposta.data;
         renderizarPerfil(dadosPerfil);
+        abrirAbaNotificacoesSeHash();
+
+        if (dadosPerfil.eh_proprio_perfil) {
+            await carregarNotificacoes();
+        }
     } catch (erro) {
         console.error(erro);
         mostrarErroPerfil("Nao foi possivel carregar o perfil.");
@@ -65,6 +73,7 @@ function renderizarPerfil(dados) {
     renderizarCamposInformacao(usuario, perfilPrestador, ehProprio);
     renderizarServicos(dados.servicos, ehProprio);
     renderizarAvaliacoes(dados.avaliacoes, usuario.nome);
+    configurarAbaNotificacoes(ehProprio);
 
     const botaoVoltar = document.getElementById("perfil_voltar");
     if (ehProprio) {
@@ -225,24 +234,232 @@ function renderizarAvaliacoes(avaliacoes, nomeUsuario) {
         `Comentarios e notas que outros usuarios deixaram para ${nomeUsuario || "esta conta"}.`;
 
     if (registros.length === 0) {
-        lista.innerHTML = renderizarVazioSecao("Nenhuma avaliacao recebida ainda. A funcionalidade de enviar avaliacoes sera ampliada em breve.");
+        lista.innerHTML = renderizarVazioSecao("Nenhuma avaliacao recebida ainda. As avaliacoes aparecem apos a conclusao de um servico contratado na plataforma.");
         return;
     }
 
     lista.innerHTML = registros.map(renderizarItemAvaliacao).join("");
 }
 
+function abrirAbaNotificacoesSeHash() {
+    if (window.location.hash !== "#notificacoes") {
+        return;
+    }
+    const tab = document.getElementById("tab-notificacoes");
+    if (tab) {
+        bootstrap.Tab.getOrCreateInstance(tab).show();
+    }
+}
+
+function configurarAbaNotificacoes(ehProprio) {
+    const tabItem = document.getElementById("tab_item_notificacoes");
+    if (!ehProprio) {
+        tabItem.classList.add("d-none");
+    } else {
+        tabItem.classList.remove("d-none");
+    }
+}
+
+function configurarModalAvaliacao() {
+    const modalEl = document.getElementById("modalAvaliar");
+    if (!modalEl) {
+        return;
+    }
+    modalAvaliarInstancia = new bootstrap.Modal(modalEl);
+    document.getElementById("btn_enviar_avaliacao").addEventListener("click", enviarAvaliacao);
+}
+
+async function carregarNotificacoes() {
+    const lista = document.getElementById("lista_notificacoes_perfil");
+    lista.innerHTML = '<p class="text-secondary">Carregando mensagens...</p>';
+
+    try {
+        const retorno = await fetch("../php/notificacoes_get.php", { credentials: "same-origin" });
+        const resposta = await retorno.json();
+
+        if (resposta.status !== "ok") {
+            lista.innerHTML = renderizarVazioSecao(resposta.mensagem || "Nao foi possivel carregar as mensagens.");
+            return;
+        }
+
+        notificacoesPerfil = resposta.data?.notificacoes ?? [];
+        const pendentes = Number(resposta.data?.pendentes ?? 0);
+        atualizarBadgeNotificacoes(pendentes);
+        renderizarNotificacoes(notificacoesPerfil);
+    } catch (erro) {
+        console.error(erro);
+        lista.innerHTML = renderizarVazioSecao("Erro ao carregar mensagens.");
+    }
+}
+
+function atualizarBadgeNotificacoes(pendentes) {
+    const badge = document.getElementById("badge_notificacoes");
+    if (!badge) {
+        return;
+    }
+    if (pendentes > 0) {
+        badge.textContent = String(pendentes);
+        badge.classList.remove("d-none");
+    } else {
+        badge.classList.add("d-none");
+    }
+}
+
+function renderizarNotificacoes(registros) {
+    const lista = document.getElementById("lista_notificacoes_perfil");
+
+    if (!Array.isArray(registros) || registros.length === 0) {
+        lista.innerHTML = renderizarVazioSecao("Nenhuma mensagem no momento.");
+        return;
+    }
+
+    lista.innerHTML = registros.map(renderizarItemNotificacao).join("");
+}
+
+function renderizarItemNotificacao(notif) {
+    const pendente = Number(notif.requer_acao) === 1 && Number(notif.respondida) === 0;
+    const acoes = Array.isArray(notif.acoes) ? notif.acoes : [];
+    const linkRemetente = linkPerfilUsuario(
+        notif.id_remetente,
+        notif.nome_remetente,
+        `Ver perfil de ${notif.nome_remetente || "usuario"}`
+    );
+
+    return `
+        <article class="notification-item ${pendente ? "pending" : ""}">
+            <div class="d-flex flex-wrap justify-content-between gap-2 mb-2">
+                <div>
+                    <strong>${escaparHtml(notif.titulo || "Mensagem")}</strong>
+                    <div class="notification-meta">${formatarData(notif.created_at)}</div>
+                </div>
+                ${pendente ? '<span class="badge bg-warning text-dark">Aguardando resposta</span>' : '<span class="badge bg-secondary">Arquivada</span>'}
+            </div>
+            <div class="mb-2">${linkRemetente}</div>
+            <p class="notification-message small mb-0">${escaparHtml(notif.mensagem || "")}</p>
+            ${notif.servico_titulo ? `<p class="small text-secondary mt-2 mb-0">Referencia: ${escaparHtml(notif.servico_titulo)}</p>` : ""}
+            ${pendente && acoes.length > 0 ? renderizarBotoesNotificacao(notif, acoes) : ""}
+        </article>
+    `;
+}
+
+function renderizarBotoesNotificacao(notif, acoes) {
+    const id = Number(notif.id);
+    const idNeg = Number(notif.id_negociacao);
+    const idRemetente = Number(notif.id_remetente);
+    const botoes = [];
+
+    if (acoes.includes("aceitar")) {
+        botoes.push(`<button class="btn btn-brand btn-sm" onclick="responderNotificacao(${id}, 'aceitar')">Aceitar</button>`);
+    }
+    if (acoes.includes("recusar")) {
+        botoes.push(`<button class="btn btn-outline-danger btn-sm" onclick="responderNotificacao(${id}, 'recusar')">Recusar</button>`);
+    }
+    if (acoes.includes("sim")) {
+        botoes.push(`<button class="btn btn-brand btn-sm" onclick="responderNotificacao(${id}, 'sim')">Sim</button>`);
+    }
+    if (acoes.includes("nao")) {
+        botoes.push(`<button class="btn btn-outline-secondary btn-sm" onclick="responderNotificacao(${id}, 'nao')">Nao</button>`);
+    }
+    if (acoes.includes("avaliar")) {
+        botoes.push(`<button class="btn btn-brand btn-sm" onclick='abrirModalAvaliacao(${idNeg}, ${idRemetente}, ${JSON.stringify(notif.nome_remetente || "Usuario")})'>Avaliar</button>`);
+    }
+
+    return `<div class="notification-actions">${botoes.join("")}</div>`;
+}
+
+async function responderNotificacao(idNotificacao, resposta) {
+    const confirmar = resposta === "recusar"
+        ? confirm("Deseja recusar esta solicitacao?")
+        : true;
+
+    if (!confirmar) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("id_notificacao", String(idNotificacao));
+    formData.append("resposta", resposta);
+
+    try {
+        const retorno = await fetch("../php/notificacao_responder.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData,
+        });
+        const json = await retorno.json();
+
+        if (json.status === "ok") {
+            alert(json.mensagem);
+            await carregarNotificacoes();
+            await carregarPerfil();
+        } else {
+            alert("Erro: " + (json.mensagem || "Falha ao responder."));
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Nao foi possivel enviar a resposta.");
+    }
+}
+
+function abrirModalAvaliacao(idNegociacao, idAvaliado, nomeAvaliado) {
+    document.getElementById("avaliar_id_negociacao").value = String(idNegociacao);
+    document.getElementById("avaliar_id_avaliado").value = String(idAvaliado);
+    document.getElementById("modal_avaliar_contexto").textContent =
+        `Voce esta avaliando ${nomeAvaliado}. So e possivel avaliar apos o servico ter sido concluido.`;
+    document.getElementById("avaliar_nota").value = "5";
+    document.getElementById("avaliar_comentario").value = "";
+
+    if (modalAvaliarInstancia) {
+        modalAvaliarInstancia.show();
+    }
+}
+
+async function enviarAvaliacao() {
+    const formData = new FormData();
+    formData.append("id_negociacao", document.getElementById("avaliar_id_negociacao").value);
+    formData.append("id_avaliado", document.getElementById("avaliar_id_avaliado").value);
+    formData.append("nota", document.getElementById("avaliar_nota").value);
+    formData.append("comentario", document.getElementById("avaliar_comentario").value);
+
+    try {
+        const retorno = await fetch("../php/avaliacao_novo.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData,
+        });
+        const json = await retorno.json();
+
+        if (json.status === "ok") {
+            alert(json.mensagem);
+            if (modalAvaliarInstancia) {
+                modalAvaliarInstancia.hide();
+            }
+            await carregarNotificacoes();
+            await carregarPerfil();
+        } else {
+            alert("Erro: " + (json.mensagem || "Falha ao avaliar."));
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Nao foi possivel enviar a avaliacao.");
+    }
+}
+
 function renderizarItemAvaliacao(avaliacao) {
     const nota = Number(avaliacao.nota);
     const rotuloServico = avaliacao.servico_origem === "prestador" ? "Servico" : "Chamado";
+    const linkAvaliador = linkPerfilUsuario(
+        avaliacao.id_avaliador,
+        avaliacao.nome_avaliador,
+        avaliacao.nome_avaliador || "Usuario"
+    );
 
     return `
         <article class="profile-review-item mb-3">
             <div class="d-flex flex-wrap justify-content-between align-items-start gap-2 mb-2">
                 <div>
-                    <strong>${escaparHtml(avaliacao.nome_avaliador || "Usuario")}</strong>
+                    <div class="mb-1">${linkAvaliador}</div>
                     <div class="small text-secondary">@${escaparHtml(avaliacao.username_avaliador || "usuario")}
-                    
                     </div>
                     <div class="small text-secondary">${formatarData(avaliacao.created_at)}</div>
                 </div>
@@ -319,7 +536,8 @@ function renderizarEstrelas(nota) {
 
 function formatarTipoUsuario(tipo) {
     const mapa = {
-        cliente: "Cliente",
+        cliente: "Contratante",
+        contratante: "Contratante",
         prestador: "Prestador",
         admin: "Administrador",
     };

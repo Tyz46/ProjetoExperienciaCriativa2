@@ -67,6 +67,7 @@ function carregarAvaliacoesRecebidas(mysqli $conexao, int $idUsuario): array
             a.comentario,
             a.created_at,
             a.id_servico,
+            a.id_avaliador,
             u.nome AS nome_avaliador,
             u.username AS username_avaliador,
             s.titulo AS servico_titulo,
