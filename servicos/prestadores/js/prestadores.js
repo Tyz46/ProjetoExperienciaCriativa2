@@ -1,8 +1,5 @@
 let usuarioLogado = null;
 let servicosPrestadores = [];
-let idsComparacao = [];
-
-const LIMITE_COMPARACAO = 3;
 
 document.addEventListener("DOMContentLoaded", () => {
     iniciarPagina();
@@ -31,9 +28,49 @@ document.getElementById("logoff").addEventListener("click", () => {
 });
 
 function configurarFiltros() {
-    document.getElementById("filtroCategoria").addEventListener("change", () => {
-        renderizarLista();
+    const categoria = document.getElementById("filtroCategoria");
+    const localidade = document.getElementById("filtroLocalidade");
+    const precoMin = document.getElementById("filtroPrecoMin");
+    const precoMax = document.getElementById("filtroPrecoMax");
+    const toggle = document.getElementById("toggleFiltros");
+    const limpar = document.getElementById("limparFiltros");
+
+    function atualizarValoresPreco() {
+        const elMin = document.getElementById("filtroPrecoMinValor");
+        const elMax = document.getElementById("filtroPrecoMaxValor");
+        if (elMin) elMin.textContent = formatarMoeda(precoMin.value);
+        if (elMax) elMax.textContent = formatarMoeda(precoMax.value);
+    }
+
+    [categoria, localidade, precoMin, precoMax].forEach((el) => {
+        if (!el) return;
+        el.addEventListener("input", renderizarLista);
+        el.addEventListener("change", renderizarLista);
     });
+
+    if (precoMin) precoMin.addEventListener("input", atualizarValoresPreco);
+    if (precoMax) precoMax.addEventListener("input", atualizarValoresPreco);
+    atualizarValoresPreco();
+
+    if (toggle) {
+        toggle.addEventListener("click", () => {
+            const painel = document.getElementById("filtros");
+            if (!painel) return;
+            painel.classList.toggle("d-none");
+            toggle.textContent = painel.classList.contains("d-none") ? "Mostrar filtros" : "Ocultar filtros";
+        });
+    }
+
+    if (limpar) {
+        limpar.addEventListener("click", () => {
+            if (categoria) categoria.value = "";
+            if (localidade) localidade.value = "";
+            if (precoMin) precoMin.value = 0;
+            if (precoMax) precoMax.value = 90;
+            atualizarValoresPreco();
+            renderizarLista();
+        });
+    }
 }
 
 async function logoff() {
@@ -59,7 +96,6 @@ async function carregarDados() {
         if (resposta.status !== "ok") {
             servicosPrestadores = [];
             lista.innerHTML = renderizarVazio();
-            renderizarPainelComparacao();
             atualizarContadorOrcamentos(0);
             return;
         }
@@ -70,7 +106,6 @@ async function carregarDados() {
         console.error(erro);
         servicosPrestadores = [];
         lista.innerHTML = renderizarVazio("Nao foi possivel carregar os servicos agora.");
-        renderizarPainelComparacao();
         atualizarContadorOrcamentos(0);
     }
 }
@@ -82,22 +117,30 @@ function renderizarLista() {
     if (registros.length === 0) {
         lista.innerHTML = renderizarVazio(gerarMensagemVazio());
         atualizarContadorOrcamentos(0);
-        renderizarPainelComparacao();
         return;
     }
 
     lista.innerHTML = registros.map(renderizarCardServico).join("");
     atualizarContadorOrcamentos(registros.length);
-    renderizarPainelComparacao();
 }
 
 function obterServicosFiltrados() {
-    const categoria = document.getElementById("filtroCategoria").value;
+    const categoria = (document.getElementById("filtroCategoria") || {}).value || "";
+    const localidade = (document.getElementById("filtroLocalidade") || {}).value || "";
+    const precoMin = Number((document.getElementById("filtroPrecoMin") || {}).value || 0);
+    const precoMax = Number((document.getElementById("filtroPrecoMax") || {}).value || 0);
 
     return servicosPrestadores.filter((servico) => {
-        if (categoria && servico.tipo !== categoria) {
-            return false;
+        if (categoria && servico.tipo !== categoria) return false;
+
+        if (localidade) {
+            const texto = (servico.localidade || "").toLowerCase();
+            if (!texto.includes(localidade.toLowerCase())) return false;
         }
+
+        const valor = Number(servico.valor);
+        if (!Number.isNaN(precoMin) && precoMin > 0 && (Number.isNaN(valor) || valor < precoMin)) return false;
+        if (!Number.isNaN(precoMax) && precoMax > 0 && (Number.isNaN(valor) || valor > precoMax)) return false;
 
         return true;
     });
@@ -108,8 +151,11 @@ function gerarMensagemVazio() {
 }
 
 function atualizarContadorOrcamentos(total) {
+    const resumo = document.getElementById("resultadoResumo");
     const contador = document.getElementById("contadorOrcamentos");
-    contador.textContent = total === 1 ? "1 opcao disponivel para comparacao." : `${total} opcoes disponiveis para comparacao.`;
+    const texto = total === 1 ? "1 chamado exibido" : `${total} chamados exibidos`;
+    if (resumo) resumo.textContent = texto;
+    if (contador) contador.textContent = `${total} opcoes disponiveis para comparacao.`;
 }
 
 async function excluir(id) {
@@ -135,11 +181,10 @@ async function excluir(id) {
 }
 
 function renderizarCardServico(objeto) {
-    const estaSelecionado = idsComparacao.includes(Number(objeto.id));
 
     return `
         <div class="col-md-6 col-xl-4">
-            <div class="card service-card ${estaSelecionado ? "service-card-selected" : ""}">
+            <div class="card service-card">
                 ${renderizarFoto(objeto)}
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
@@ -170,10 +215,7 @@ function renderizarCardServico(objeto) {
                     </p>
 
                     <div class="mt-auto d-flex gap-2 mb-2">
-                        <button class="btn ${estaSelecionado ? "btn-outline-secondary" : "btn-outline-success"} btn-sm w-50" onclick="alternarComparacao(${objeto.id})">
-                            ${estaSelecionado ? "Remover" : "Comparar"}
-                        </button>
-                        <button class="btn btn-brand btn-sm w-50" data-bs-toggle="modal" data-bs-target="#modalDetalheOrcamento" onclick="abrirDetalheOrcamento(${objeto.id})">
+                        <button class="btn btn-brand btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalDetalheOrcamento" onclick="abrirDetalheOrcamento(${objeto.id})">
                             Ver detalhes
                         </button>
                     </div>
@@ -224,112 +266,27 @@ function renderizarAcoesGerenciamento(objeto) {
 }
 
 function alternarComparacao(id) {
-    const idNumerico = Number(id);
-    const indice = idsComparacao.indexOf(idNumerico);
-
-    if (indice >= 0) {
-        idsComparacao.splice(indice, 1);
-    } else {
-        if (idsComparacao.length >= LIMITE_COMPARACAO) {
-            alert("Voce pode comparar ate 3 servicos por vez.");
-            return;
-        }
-
-        idsComparacao.push(idNumerico);
-    }
-
-    renderizarLista();
+    // comparação removida
 }
 
 function renderizarPainelComparacao() {
-    const painel = document.getElementById("painelComparacao");
-    const selecionados = obterServicosSelecionados();
-
-    if (selecionados.length === 0) {
-        painel.innerHTML = `
-            <div class="comparison-panel compare-empty">
-                <h3 class="h5 mb-2">Quadro comparativo</h3>
-                <p class="mb-0 text-muted">Selecione servicos na lista para comparar valores, especialidades e descricao completa do orcamento.</p>
-            </div>
-        `;
-        return;
-    }
-
-    painel.innerHTML = `
-        <div class="comparison-panel">
-            <div class="d-flex flex-column flex-lg-row justify-content-between align-items-lg-center gap-2 mb-3">
-                <div>
-                    <p class="section-kicker mb-2">Comparacao ativa</p>
-                    <h3 class="h4 mb-1">Visao lado a lado dos orcamentos</h3>
-                    <p class="text-secondary mb-0">Compare custo-beneficio e abra o detalhe de qualquer opcao quando quiser.</p>
-                </div>
-                <div class="d-flex flex-wrap align-items-center gap-2">
-                    <span class="comparison-pill">${selecionados.length}/${LIMITE_COMPARACAO} selecionados</span>
-                    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="limparComparacao()">Limpar</button>
-                </div>
-            </div>
-
-            <div class="table-responsive">
-                <table class="table compare-table align-middle mb-0">
-                    <thead>
-                        <tr>
-                            <th>Criterio</th>
-                            ${selecionados.map((servico) => `<th>${escaparHtml(servico.nome || "Servico")}</th>`).join("")}
-                        </tr>
-                    </thead>
-                    <tbody>
-                        ${renderizarLinhaComparacao("Prestador", selecionados.map((servico) => escaparHtml(servico.nome_usuario || "Prestador")))}
-                        ${renderizarLinhaComparacao("Profissao", selecionados.map((servico) => escaparHtml(servico.profissao || "Nao informada")))}
-                        ${renderizarLinhaComparacao("Categoria", selecionados.map((servico) => escaparHtml(formatarCategoria(servico.tipo))))}
-                        ${renderizarLinhaComparacao("Valor", selecionados.map((servico) => escaparHtml(formatarMoeda(servico.valor))))}
-                        ${renderizarLinhaComparacao("Custo-beneficio", selecionados.map((servico) => renderizarIndicadorCusto(servico, selecionados)))}
-                        ${renderizarLinhaComparacao("Localidade", selecionados.map((servico) => escaparHtml(servico.localidade || "Nao informada")))}
-                        ${renderizarLinhaComparacao("Habilidades", selecionados.map((servico) => renderizarHabilidades(servico.habilidades)))}
-                        ${renderizarLinhaComparacao("Especialidades", selecionados.map((servico) => escaparHtml(resumirTexto(servico.descricao_especialidades || "Nao informadas.", 140))))}
-                        ${renderizarLinhaComparacao("Descricao do orcamento", selecionados.map((servico) => escaparHtml(resumirTexto(servico.descricao || "Sem descricao.", 180))))}
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    `;
+    // painel comparativo removido
 }
 
 function renderizarLinhaComparacao(rotulo, colunas) {
-    return `
-        <tr>
-            <th>${rotulo}</th>
-            ${colunas.map((coluna) => `<td>${coluna}</td>`).join("")}
-        </tr>
-    `;
+    return ``;
 }
 
 function renderizarIndicadorCusto(servico, selecionados) {
-    const valoresValidos = selecionados
-        .map((item) => Number(item.valor))
-        .filter((valor) => !Number.isNaN(valor) && valor > 0);
-
-    const valorAtual = Number(servico.valor);
-    if (valoresValidos.length === 0 || Number.isNaN(valorAtual) || valorAtual <= 0) {
-        return '<span class="comparison-pill muted">A negociar</span>';
-    }
-
-    const menorValor = Math.min(...valoresValidos);
-    if (valorAtual === menorValor) {
-        return '<span class="comparison-pill success">Menor valor</span>';
-    }
-
-    return '<span class="comparison-pill">Acima do menor valor</span>';
+    return '';
 }
 
 function obterServicosSelecionados() {
-    return idsComparacao
-        .map((id) => servicosPrestadores.find((servico) => Number(servico.id) === Number(id)))
-        .filter(Boolean);
+    return [];
 }
 
 function limparComparacao() {
-    idsComparacao = [];
-    renderizarLista();
+    // removido
 }
 
 function abrirDetalheOrcamento(id) {

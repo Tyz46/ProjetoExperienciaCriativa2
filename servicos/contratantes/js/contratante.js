@@ -10,6 +10,7 @@ async function iniciarPagina() {
     usuarioLogado = sessao.data;
 
     aplicarPermissoes();
+    configurarFiltros();
     await carregarDados();
 }
 
@@ -47,21 +48,108 @@ async function carregarDados() {
         const resposta = await retorno.json();
 
         if (resposta.status !== "ok") {
+            servicosContratantes = [];
             lista.innerHTML = renderizarVazio();
+            atualizarResultadoResumo(0);
             return;
         }
 
         servicosContratantes = Array.isArray(resposta.data) ? resposta.data : [];
-        if (servicosContratantes.length === 0) {
-            lista.innerHTML = renderizarVazio();
-            return;
-        }
-
-        lista.innerHTML = servicosContratantes.map(renderizarCardChamado).join("");
+        renderizarLista();
     } catch (erro) {
         console.error(erro);
+        servicosContratantes = [];
         lista.innerHTML = renderizarVazio("Nao foi possivel carregar os chamados agora.");
+        atualizarResultadoResumo(0);
     }
+}
+
+function configurarFiltros() {
+    const categoria = document.getElementById("filtroCategoria");
+    const localidade = document.getElementById("filtroLocalidade");
+    const precoMin = document.getElementById("filtroPrecoMin");
+    const precoMax = document.getElementById("filtroPrecoMax");
+    const toggle = document.getElementById("toggleFiltros");
+    const limpar = document.getElementById("limparFiltros");
+
+    function atualizarValoresPreco() {
+        const elMin = document.getElementById("filtroPrecoMinValor");
+        const elMax = document.getElementById("filtroPrecoMaxValor");
+        if (elMin) elMin.textContent = formatarMoeda(precoMin.value);
+        if (elMax) elMax.textContent = formatarMoeda(precoMax.value);
+    }
+
+    [categoria, localidade, precoMin, precoMax].forEach((el) => {
+        if (!el) return;
+        el.addEventListener("input", renderizarLista);
+        el.addEventListener("change", renderizarLista);
+    });
+
+    if (precoMin) precoMin.addEventListener("input", atualizarValoresPreco);
+    if (precoMax) precoMax.addEventListener("input", atualizarValoresPreco);
+    atualizarValoresPreco();
+
+    if (toggle) {
+        toggle.addEventListener("click", () => {
+            const painel = document.getElementById("filtros");
+            if (!painel) return;
+            painel.classList.toggle("d-none");
+            toggle.textContent = painel.classList.contains("d-none") ? "Mostrar filtros" : "Ocultar filtros";
+        });
+    }
+
+    if (limpar) {
+        limpar.addEventListener("click", () => {
+            if (categoria) categoria.value = "";
+            if (localidade) localidade.value = "";
+            if (precoMin) precoMin.value = 0;
+            if (precoMax) precoMax.value = 90;
+            atualizarValoresPreco();
+            renderizarLista();
+        });
+    }
+}
+
+function renderizarLista() {
+    const lista = document.getElementById("lista");
+    const registros = obterServicosFiltrados();
+
+    if (registros.length === 0) {
+        lista.innerHTML = renderizarVazio("Nenhum chamado encontrado com os filtros atuais.");
+        atualizarResultadoResumo(0);
+        return;
+    }
+
+    lista.innerHTML = registros.map(renderizarCardChamado).join("");
+    atualizarResultadoResumo(registros.length);
+}
+
+function obterServicosFiltrados() {
+    const categoria = (document.getElementById("filtroCategoria") || {}).value || "";
+    const localidade = (document.getElementById("filtroLocalidade") || {}).value || "";
+    const precoMin = Number((document.getElementById("filtroPrecoMin") || {}).value || 0);
+    const precoMax = Number((document.getElementById("filtroPrecoMax") || {}).value || 0);
+
+    return servicosContratantes.filter((servico) => {
+        if (categoria && servico.tipo !== categoria) return false;
+
+        if (localidade) {
+            const texto = (servico.localidade || "").toLowerCase();
+            if (!texto.includes(localidade.toLowerCase())) return false;
+        }
+
+        const valor = Number(servico.valor);
+        if (!Number.isNaN(precoMin) && precoMin > 0 && (Number.isNaN(valor) || valor < precoMin)) return false;
+        if (!Number.isNaN(precoMax) && precoMax > 0 && (Number.isNaN(valor) || valor > precoMax)) return false;
+
+        return true;
+    });
+}
+
+function atualizarResultadoResumo(total) {
+    const resumo = document.getElementById("resultadoResumo");
+    if (!resumo) return;
+    resumo.textContent = total === 1 ? "1 chamado exibido" : `${total} chamados exibidos`;
 }
 
 async function excluir(id) {
@@ -80,7 +168,7 @@ async function excluir(id) {
 
     if (resposta.status === "ok") {
         alert(resposta.mensagem);
-        await carregarDados();
+        carregarDados();
     } else {
         alert("Erro: " + resposta.mensagem);
     }

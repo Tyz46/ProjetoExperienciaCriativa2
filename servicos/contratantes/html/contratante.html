@@ -56,6 +56,54 @@
                 </button>
             </div>
 
+            <section class="filters-toolbar mb-4">
+                <div class="d-flex justify-content-between align-items-center mb-2">
+                    <div>
+                        <p class="section-kicker mb-2">Filtros</p>
+                        <h3 class="h4 mb-1">Refinar busca</h3>
+                        <p id="resultadoResumo" class="text-secondary mb-0">Carregando opcoes...</p>
+                    </div>
+
+                    <div class="d-flex gap-2">
+                        <button id="toggleFiltros" type="button" class="btn btn-outline-secondary btn-sm">Ocultar filtros</button>
+                        <button id="limparFiltros" type="button" class="btn btn-outline-secondary btn-sm">Limpar filtros</button>
+                    </div>
+                </div>
+
+                <div id="filtros" class="row g-3 align-items-end">
+                    <div class="col-md-3">
+                        <label for="filtroCategoria" class="form-label">Categoria</label>
+                        <select id="filtroCategoria" class="form-select">
+                            <option value="">Todas as categorias</option>
+                            <option value="Eletrica">Eletrica</option>
+                            <option value="Limpeza">Limpeza</option>
+                            <option value="Informatica">Informatica</option>
+                            <option value="Pintura">Pintura</option>
+                            <option value="Encanamento">Encanamento</option>
+                            <option value="Montagem">Montagem</option>
+                            <option value="Outros">Outros</option>
+                        </select>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label for="filtroLocalidade" class="form-label">Localidade</label>
+                        <input id="filtroLocalidade" class="form-control" placeholder="Ex: Curitiba, Centro, PR">
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Preço mínimo (R$)</label>
+                        <input type="range" id="filtroPrecoMin" min="0" max="1000" value="0" class="form-range">
+                        <div class="small text-secondary">Valor: <span id="filtroPrecoMinValor">R$ 0,00</span></div>
+                    </div>
+
+                    <div class="col-md-3">
+                        <label class="form-label">Preço máximo (R$)</label>
+                        <input type="range" id="filtroPrecoMax" min="0" max="1000" value="90" class="form-range">
+                        <div class="small text-secondary">Até: <span id="filtroPrecoMaxValor">R$ 90,00</span></div>
+                    </div>
+                </div>
+            </section>
+
             <div id="lista" class="row g-4"></div>
         </main>
 
