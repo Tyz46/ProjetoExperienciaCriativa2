@@ -110,6 +110,7 @@ function renderizarCardChamado(objeto) {
 
                     <div class="mt-auto d-flex flex-column gap-2">
                         <button class="btn btn-outline-secondary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalDetalheChamado" onclick="abrirDetalheChamado(${objeto.id})">Ver detalhes</button>
+                        ${renderizarBotaoAceitarTrabalho(objeto)}
                         ${renderizarAcoes(objeto)}
                     </div>
                 </div>
@@ -219,6 +220,60 @@ function podeGerenciarRegistro(objeto) {
         usuarioLogado?.tipo === "cliente" &&
         Number(objeto.id_usuario) === Number(usuarioLogado?.id)
     );
+}
+
+function podeAceitarTrabalho(objeto) {
+    if (!usuarioLogado) {
+        return false;
+    }
+    if (usuarioLogado.tipo !== "prestador" && usuarioLogado.tipo !== "admin") {
+        return false;
+    }
+    if (Number(objeto.id_usuario) === Number(usuarioLogado.id)) {
+        return false;
+    }
+    return true;
+}
+
+function renderizarBotaoAceitarTrabalho(objeto) {
+    if (!podeAceitarTrabalho(objeto)) {
+        return "";
+    }
+
+    const nomeChamado = (objeto.nome || "chamado").replace(/'/g, "\\'");
+    return `
+        <button class="btn btn-outline-primary btn-sm w-100" onclick="enviarPropostaTrabalho(${objeto.id}, '${nomeChamado}')">
+            <i class="bi bi-hand-thumbs-up me-1"></i>Aceitar trabalho
+        </button>
+    `;
+}
+
+async function enviarPropostaTrabalho(idServico, nomeChamado) {
+    const confirmar = confirm(`Deseja informar ao contratante que voce aceita trabalhar em "${nomeChamado}"?`);
+    if (!confirmar) {
+        return;
+    }
+
+    const formData = new FormData();
+    formData.append("id_servico", String(idServico));
+
+    try {
+        const retorno = await fetch("../../../home/php/fluxo_proposta.php", {
+            method: "POST",
+            credentials: "same-origin",
+            body: formData,
+        });
+        const resposta = await retorno.json();
+
+        if (resposta.status === "ok") {
+            alert(resposta.mensagem + " Acompanhe em Mensagens no seu perfil.");
+        } else {
+            alert("Erro: " + (resposta.mensagem || "Falha ao enviar."));
+        }
+    } catch (erro) {
+        console.error(erro);
+        alert("Nao foi possivel enviar a proposta.");
+    }
 }
 
 function escaparHtml(valor) {

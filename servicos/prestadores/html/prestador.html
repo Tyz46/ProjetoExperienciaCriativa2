@@ -138,13 +138,62 @@
             </div>
         </div>
 
+        <div class="modal fade" id="modalSolicitacao" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog modal-lg modal-dialog-scrollable">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="modalSolicitacaoTitulo">Enviar solicitacao</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <input type="hidden" id="solicitacao_id_servico">
+                        <p class="text-secondary small">Descreva o que voce precisa. O prestador recebera esta mensagem na aba Mensagens do perfil dele.</p>
+                        <div class="mb-3">
+                            <label class="form-label" for="solicitacao_titulo">Assunto</label>
+                            <input type="text" id="solicitacao_titulo" class="form-control" placeholder="Ex: Instalacao de tomadas">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="solicitacao_descricao">O que precisa ser feito?</label>
+                            <textarea id="solicitacao_descricao" class="form-control" rows="4" placeholder="Descreva o problema, urgencia e horarios"></textarea>
+                        </div>
+                        <div class="row">
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="solicitacao_categoria">Categoria</label>
+                                <select id="solicitacao_categoria" class="form-select">
+                                    <option value="" disabled selected>Selecione</option>
+                                    <option value="Eletrica">Eletrica</option>
+                                    <option value="Limpeza">Limpeza</option>
+                                    <option value="Informatica">Informatica</option>
+                                    <option value="Pintura">Pintura</option>
+                                    <option value="Encanamento">Encanamento</option>
+                                    <option value="Montagem">Montagem</option>
+                                </select>
+                            </div>
+                            <div class="col-md-6 mb-3">
+                                <label class="form-label" for="solicitacao_valor">Orcamento sugerido (R$)</label>
+                                <input type="number" step="0.01" id="solicitacao_valor" class="form-control" placeholder="0 = a negociar">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label" for="solicitacao_localidade">Localidade</label>
+                            <input type="text" id="solicitacao_localidade" class="form-control" placeholder="Ex: Curitiba - PR">
+                        </div>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-brand" onclick="enviarSolicitacaoServico()">Enviar solicitacao</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <footer class="footer py-3 text-center mt-5">
             <p class="mb-1 text-secondary">© 2025 ConsertaJa. Todos os direitos reservados.</p>
         </footer>
 
         <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
         <script src="../../../home/js/perfil_utils.js?v=1"></script>
-        <script src="../js/prestadores.js?v=comparacao"></script>
+        <script src="../js/prestadores.js?v=fluxo"></script>
         <script src="../js/valida_sessao.js?v=origem"></script>
     </div>
 </body>
