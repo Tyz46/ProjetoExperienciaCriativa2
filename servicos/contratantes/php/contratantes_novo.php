@@ -22,7 +22,7 @@ $localidade = trim($_POST['localidade'] ?? '');
 $idUsuario = idUsuarioLogado();
 
 if ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $localidade === '') {
-    $retorno['mensagem'] = 'Preencha todos os campos obrigatórios.';
+    $retorno['mensagem'] = 'Preencha todos os campos.';
 } else {
     $fotos = salvarFotosServico(ORIGEM_CLIENTE);
     $foto = count($fotos) > 0 ? $fotos[0] : null;
@@ -52,9 +52,9 @@ if ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $
 
         if ($stmt->execute() && $stmt->affected_rows > 0) {
             $retorno['status'] = 'ok';
-            $retorno['mensagem'] = 'Chamado cadastrado com sucesso!';
+            $retorno['mensagem'] = 'Chamado cadastrado com sucesso';
         } else {
-            $retorno['mensagem'] = 'Não foi possível inserir o registro: ' . $stmt->error;
+            $retorno['mensagem'] = 'Nao foi possivel inserir o registro: ' . $stmt->error;
         }
         $stmt->close();
     }

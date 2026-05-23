@@ -49,17 +49,16 @@ async function cadastrar() {
             body: fd
         });
 
-        // Pegamos a resposta como texto para evitar crash
         const textoResposta = await retorno.text();
 
         try {
             const resposta = JSON.parse(textoResposta);
 
             if (resposta.status === "ok") {
-                alert("Chamado cadastrado com sucesso!");
+                alert(resposta.mensagem || "Chamado cadastrado com sucesso");
                 window.location.href = "../html/contratante.html";
             } else {
-                alert("Atenção: " + resposta.mensagem);
+                alert(resposta.mensagem || "Preencha todos os campos.");
             }
         } catch (erroJson) {
             console.error("Erro do Servidor:", textoResposta);
@@ -67,7 +66,7 @@ async function cadastrar() {
         }
     } catch (erro) {
         console.error(erro);
-        alert("Erro de conexão (O servidor está desligado ou o caminho está errado).");
+        alert("Erro de conexao (O servidor esta desligado ou o caminho esta errado).");
     }
 }
 

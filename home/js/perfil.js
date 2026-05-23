@@ -72,7 +72,9 @@ function renderizarPerfil(dados) {
     renderizarResumoAvaliacoes(dados.resumo_avaliacoes);
     renderizarCamposInformacao(usuario, perfilPrestador, ehProprio);
     renderizarServicos(dados.servicos, ehProprio);
+    renderizarServicosAcordados(dados.servicos_acordados, ehProprio, usuario.nome);
     renderizarAvaliacoes(dados.avaliacoes, usuario.nome);
+    configurarAbaAcordos(ehProprio);
     configurarAbaNotificacoes(ehProprio);
 
     const botaoVoltar = document.getElementById("perfil_voltar");
@@ -161,6 +163,91 @@ function renderizarServicos(servicos, ehProprio) {
         .join("");
 }
 
+function renderizarServicosAcordados(registros, ehProprio, nomeUsuario) {
+    const lista = document.getElementById("lista_servicos_acordados_perfil");
+    const descricao = document.getElementById("perfil_acordos_descricao");
+    const acordos = Array.isArray(registros) ? registros : [];
+
+    if (!lista || !descricao) {
+        return;
+    }
+
+    descricao.textContent = ehProprio
+        ? "Aqui ficam os servicos que ja foram combinados com clientes e prestadores na plataforma."
+        : `Registro de servicos acordados de ${nomeUsuario || "este usuario"} indisponivel para consulta publica.`;
+
+    if (!ehProprio) {
+        lista.innerHTML = "";
+        return;
+    }
+
+    if (acordos.length === 0) {
+        lista.innerHTML = renderizarVazioSecao("Nenhum servico acordado ainda. Quando uma solicitacao ou proposta for aceita, ela aparece aqui.");
+        return;
+    }
+
+    lista.innerHTML = acordos
+        .map((registro) => renderizarCardServicoAcordado(registro))
+        .join("");
+}
+
+function renderizarCardServicoAcordado(registro) {
+    const linkOutraParte = linkPerfilUsuario(
+        registro.id_outra_parte,
+        registro.nome_outra_parte,
+        `Ver perfil de ${registro.nome_outra_parte || "usuario"}`
+    );
+    const statusClasse = obterClasseStatusAcordo(registro.status);
+    const papelUsuario = registro.papel_usuario === "cliente"
+        ? "Voce contratou este servico"
+        : "Voce esta atendendo este cliente";
+    const profissaoOutraParte = registro.profissao_outra_parte
+        ? `
+            <p class="text-secondary small mb-3">
+                <i class="bi bi-briefcase me-1"></i>${escaparHtml(registro.profissao_outra_parte)}
+            </p>
+        `
+        : "";
+
+    return `
+        <div class="col-md-6 col-xl-4">
+            <article class="card service-card agreement-card h-100">
+                ${renderizarFotoServico({ foto: registro.foto })}
+                <div class="card-body d-flex flex-column">
+                    <div class="d-flex justify-content-between align-items-start gap-2 mb-3">
+                        <span class="service-badge">${escaparHtml(registro.tipo_iniciativa_rotulo || "Servico acordado")}</span>
+                        <span class="agreement-status-pill ${statusClasse}">${escaparHtml(registro.status_rotulo || "Acordado")}</span>
+                    </div>
+
+                    <h5 class="card-title fw-bold mb-2">${escaparHtml(registro.titulo_exibicao || "Servico acordado")}</h5>
+                    <div class="mb-2">${linkOutraParte}</div>
+                    <p class="text-secondary small mb-2">${escaparHtml(registro.rotulo_outra_parte || "Outra parte do acordo")}</p>
+                    ${profissaoOutraParte}
+
+                    <p class="card-text text-muted service-description-clamp mb-3">
+                        ${escaparHtml(registro.descricao_exibicao || "Sem descricao complementar registrada.")}
+                    </p>
+
+                    <div class="agreement-meta mb-3">
+                        <span><i class="bi bi-person-check me-1"></i>${escaparHtml(papelUsuario)}</span>
+                        <span><i class="bi bi-tag me-1"></i>${escaparHtml(formatarCategoria(registro.categoria_exibicao))}</span>
+                    </div>
+
+                    <div class="agreement-meta mb-3">
+                        <span><i class="bi bi-geo-alt me-1"></i>${escaparHtml(registro.localidade_exibicao || "Nao informada")}</span>
+                        <span><i class="bi bi-cash-coin me-1"></i>${formatarMoeda(registro.valor_exibicao)}</span>
+                    </div>
+
+                    <div class="agreement-footer mt-auto">
+                        <span><strong>Registro:</strong> ${formatarData(registro.created_at)}</span>
+                        <span><strong>Atualizacao:</strong> ${formatarData(registro.updated_at)}</span>
+                    </div>
+                </div>
+            </article>
+        </div>
+    `;
+}
+
 function renderizarCardServicoPerfil(objeto, ehProprio) {
     const origem = objeto.origem;
     const ehPrestador = origem === "prestador";
@@ -243,12 +330,31 @@ function renderizarAvaliacoes(avaliacoes, nomeUsuario) {
 
 function abrirAbaNotificacoesSeHash() {
     if (window.location.hash !== "#notificacoes") {
+        if (window.location.hash !== "#acordos") {
+            return;
+        }
+        const tabAcordos = document.getElementById("tab-acordos");
+        if (tabAcordos) {
+            bootstrap.Tab.getOrCreateInstance(tabAcordos).show();
+        }
         return;
     }
     const tab = document.getElementById("tab-notificacoes");
     if (tab) {
         bootstrap.Tab.getOrCreateInstance(tab).show();
     }
+}
+
+function configurarAbaAcordos(ehProprio) {
+    const tabItem = document.getElementById("tab_item_acordos");
+    const painel = document.getElementById("painel-acordos");
+
+    if (!tabItem || !painel) {
+        return;
+    }
+
+    tabItem.classList.toggle("d-none", !ehProprio);
+    painel.classList.toggle("d-none", !ehProprio);
 }
 
 function configurarAbaNotificacoes(ehProprio) {
@@ -532,6 +638,16 @@ function renderizarEstrelas(nota) {
         );
     }
     return estrelas.join(" ");
+}
+
+function obterClasseStatusAcordo(status) {
+    const mapa = {
+        aceita: "is-agreed",
+        em_andamento: "is-active",
+        finalizada: "is-done",
+    };
+
+    return mapa[status] || "is-agreed";
 }
 
 function formatarTipoUsuario(tipo) {
