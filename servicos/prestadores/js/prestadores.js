@@ -33,13 +33,31 @@ function configurarFiltros() {
     const precoMin = document.getElementById("filtroPrecoMin");
     const precoMax = document.getElementById("filtroPrecoMax");
     const toggle = document.getElementById("toggleFiltros");
+    const toggleTexto = document.getElementById("toggleFiltrosTexto");
     const limpar = document.getElementById("limparFiltros");
+    const painel = document.getElementById("filtrosPainel");
+    const toolbar = toggle ? toggle.closest(".filters-toolbar") : null;
 
     function atualizarValoresPreco() {
         const elMin = document.getElementById("filtroPrecoMinValor");
         const elMax = document.getElementById("filtroPrecoMaxValor");
         if (elMin) elMin.textContent = formatarMoeda(precoMin.value);
         if (elMax) elMax.textContent = formatarMoeda(precoMax.value);
+    }
+
+    function atualizarEstadoFiltros(estaAberto) {
+        if (painel) {
+            painel.hidden = !estaAberto;
+        }
+        if (toggle) {
+            toggle.setAttribute("aria-expanded", String(estaAberto));
+        }
+        if (toggleTexto) {
+            toggleTexto.textContent = estaAberto ? "Recolher" : "Abrir";
+        }
+        if (toolbar) {
+            toolbar.classList.toggle("is-collapsed", !estaAberto);
+        }
     }
 
     [categoria, localidade, precoMin, precoMax].forEach((el) => {
@@ -51,13 +69,12 @@ function configurarFiltros() {
     if (precoMin) precoMin.addEventListener("input", atualizarValoresPreco);
     if (precoMax) precoMax.addEventListener("input", atualizarValoresPreco);
     atualizarValoresPreco();
+    atualizarEstadoFiltros(true);
 
     if (toggle) {
         toggle.addEventListener("click", () => {
-            const painel = document.getElementById("filtros");
             if (!painel) return;
-            painel.classList.toggle("d-none");
-            toggle.textContent = painel.classList.contains("d-none") ? "Mostrar filtros" : "Ocultar filtros";
+            atualizarEstadoFiltros(painel.hidden);
         });
     }
 
@@ -184,7 +201,7 @@ function renderizarCardServico(objeto) {
 
     return `
         <div class="col-md-6 col-xl-4">
-            <div class="card service-card">
+            <div class="card service-card h-100">
                 ${renderizarFoto(objeto)}
                 <div class="card-body d-flex flex-column">
                     <div class="d-flex justify-content-between align-items-start gap-3 mb-3">
@@ -214,15 +231,13 @@ function renderizarCardServico(objeto) {
                         <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Nao informada")}</span>
                     </p>
 
-                    <div class="mt-auto d-flex gap-2 mb-2">
-                        <button class="btn btn-brand btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalDetalheOrcamento" onclick="abrirDetalheOrcamento(${objeto.id})">
-                            Ver detalhes
+                    <div class="service-card-actions mt-auto">
+                        <button class="btn btn-card-secondary btn-sm w-100" data-bs-toggle="modal" data-bs-target="#modalDetalheOrcamento" onclick="abrirDetalheOrcamento(${objeto.id})">
+                            <i class="bi bi-eye me-1"></i>Ver detalhes
                         </button>
+                        ${renderizarBotaoSolicitacao(objeto)}
+                        ${renderizarAcoesGerenciamento(objeto)}
                     </div>
-
-                    ${renderizarBotaoSolicitacao(objeto)}
-
-                    ${renderizarAcoesGerenciamento(objeto)}
                 </div>
             </div>
         </div>
@@ -258,9 +273,9 @@ function renderizarAcoesGerenciamento(objeto) {
     }
 
     return `
-        <div class="d-flex gap-2">
-            <a href="prestador_alterar.html?id=${objeto.id}" class="btn btn-warning btn-sm text-dark w-50">Alterar</a>
-            <button class="btn btn-danger btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
+        <div class="service-card-actions-row">
+            <a href="prestador_alterar.html?id=${objeto.id}" class="btn btn-card-edit btn-sm w-50">Alterar</a>
+            <button class="btn btn-card-delete btn-sm w-50" onclick="excluir(${objeto.id})">Excluir</button>
         </div>
     `;
 }
@@ -410,7 +425,7 @@ function renderizarBotaoSolicitacao(objeto) {
 
     const nomeServico = (objeto.nome || "servico").replace(/'/g, "\\'");
     return `
-        <button class="btn btn-outline-primary btn-sm w-100 mb-2" onclick="abrirModalSolicitacao(${objeto.id}, '${nomeServico}')">
+        <button class="btn btn-card-primary btn-sm w-100" onclick="abrirModalSolicitacao(${objeto.id}, '${nomeServico}')">
             <i class="bi bi-send me-1"></i>Enviar solicitacao
         </button>
     `;
