@@ -253,6 +253,37 @@ CREATE INDEX idx_negociacao_status ON negociacao_servico(status);
 CREATE INDEX idx_notificacao_usuario ON notificacao(id_usuario);
 CREATE INDEX idx_notificacao_pendente ON notificacao(id_usuario, respondida);
 
+-- DISPONIBILIDADE DO PRESTADOR
+
+CREATE TABLE prestador_disponibilidade (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+
+    id_prestador INT NOT NULL,
+
+    data_inicio DATE NOT NULL,
+    hora_inicio TIME NOT NULL,
+
+    data_fim DATE NOT NULL,
+    hora_fim TIME NOT NULL,
+
+    status ENUM('ocupado', 'disponivel') NOT NULL DEFAULT 'ocupado',
+
+    descricao TEXT NULL,
+
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    updated_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        ON UPDATE CURRENT_TIMESTAMP,
+
+    FOREIGN KEY (id_prestador)
+        REFERENCES usuario(id)
+        ON DELETE CASCADE,
+
+    UNIQUE KEY uk_disponibilidade_periodo (id_prestador, data_inicio, hora_inicio, data_fim, hora_fim)
+);
+
+CREATE INDEX idx_prestador_disponibilidade ON prestador_disponibilidade(id_prestador);
+CREATE INDEX idx_prestador_data ON prestador_disponibilidade(id_prestador, data_inicio);
+
 -- Conta admin inicial (senha: admin123 — troque após o primeiro login)
 INSERT INTO usuario (nome, email, telefone, username, senha_hash, tipo)
 VALUES (

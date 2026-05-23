@@ -73,6 +73,10 @@
                     <button class="nav-link" id="tab-avaliacoes" data-bs-toggle="tab" data-bs-target="#painel-avaliacoes"
                         type="button" role="tab">Avaliações</button>
                 </li>
+                <li class="nav-item" role="presentation" id="tab_item_agenda">
+                    <button class="nav-link" id="tab-agenda" data-bs-toggle="tab" data-bs-target="#painel-agenda"
+                        type="button" role="tab">Agenda de Disponibilidade</button>
+                </li>
             </ul>
 
             <div class="tab-content">
@@ -145,6 +149,48 @@
                         <div id="lista_avaliacoes_perfil"></div>
                     </section>
                 </div>
+
+                <div class="tab-pane fade" id="painel-agenda" role="tabpanel">
+                    <section class="section-card p-4">
+                        <h3 class="h5 mb-4">Configurar Agenda de Disponibilidade</h3>
+                        <p class="text-secondary mb-4">Marque aqui os dias e horários em que você está indisponível para receber chamados.</p>
+                        
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Data Início</label>
+                                <input type="date" id="agenda_data_inicio" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hora Início</label>
+                                <input type="time" id="agenda_hora_inicio" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Data Fim</label>
+                                <input type="date" id="agenda_data_fim" class="form-control">
+                            </div>
+                            <div class="col-md-6">
+                                <label class="form-label fw-semibold">Hora Fim</label>
+                                <input type="time" id="agenda_hora_fim" class="form-control">
+                            </div>
+                            <div class="col-12">
+                                <label class="form-label fw-semibold">Observações (opcional)</label>
+                                <textarea id="agenda_descricao" class="form-control" rows="2" placeholder="Ex: Em férias, fazendo manutenção, etc."></textarea>
+                            </div>
+                            <div class="col-12">
+                                <button type="button" class="btn btn-brand" id="btn_adicionar_disponibilidade">
+                                    <i class="bi bi-plus-circle me-2"></i>Adicionar Período Ocupado
+                                </button>
+                            </div>
+                        </div>
+
+                        <div id="agenda_mensagem_alerta" class="alert d-none" role="alert"></div>
+
+                        <h5 class="mt-4 mb-3">Períodos Marcados como Ocupado</h5>
+                        <div id="lista_disponibilidades" class="list-group">
+                            <p class="text-muted text-center py-4">Carregando disponibilidades...</p>
+                        </div>
+                    </section>
+                </div>
             </div>
         </div>
     </main>
@@ -192,6 +238,7 @@
     <script src="../js/valida_sessao.js?v=sessao"></script>
     <script src="../js/perfil_utils.js?v=2"></script>
     <script src="../js/perfil.js?v=fluxo2"></script>
+    <script src="../js/agenda_disponibilidade.js?v=1"></script>
 </div>
 </body>
 </html>
