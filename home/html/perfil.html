@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="pt-br">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,250 +9,256 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.css" rel="stylesheet">
     <link href="../css/app.css?v=perfil-acordos" rel="stylesheet">
 </head>
+
 <body>
-<div class="site-shell">
-    <nav class="navbar navbar-expand-lg bg-white shadow-sm">
-        
-        <div class="container">
-            <a class="navbar-brand" href="../html/index.html">
-                <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJa
-            </a>
+    <div class="site-shell">
+        <nav class="navbar navbar-expand-lg bg-white shadow-sm">
 
-            
-            <div class="ms-auto d-flex gap-2">
-                <a class="btn btn-outline-secondary" id="perfil_voltar" href="../html/index.html">Voltar</a>
-                <button class="btn btn-outline-danger" id="logoff">Sair</button>
-            </div>
-        </div>
-    </nav>
+            <div class="container">
+                <a class="navbar-brand" href="../html/index.html">
+                    <span class="brand-mark"><i class="bi bi-tools"></i></span>ConsertaJa
+                </a>
 
-    <main class="app-main container py-5">
-        <div id="perfil_estado_carregando" class="profile-card p-4 bg-white text-center text-secondary">
-            Carregando perfil...
-        
-        
-        </div>
 
-        <div id="perfil_conteudo" class="d-none">
-            <div class="profile-card p-4 bg-white mb-4">
-                <div class="d-flex flex-column flex-md-row align-items-md-center gap-4">
-                    
-                    <div class="profile-avatar" id="perfil_avatar">
-                        <i class="bi bi-person-fill"></i>
-                    </div>
-                    <div class="flex-grow-1">
-                        <p class="section-kicker mb-2" id="perfil_contexto">Perfil</p>
-                        <h1 class="page-title mb-2" id="perfil_nome_titulo">-</h1>
-                        <p class="text-secondary mb-2">
-                            <span id="perfil_username">@usuario</span>
-                            <span class="mx-2">·</span>
-                            <span id="perfil_tipo_badge" class="profile-type-badge">-</span>
-                        </p>
-                        <div id="perfil_resumo_avaliacoes" class="profile-rating-summary text-secondary small">
-                        </div>
-                        <p id="perfil_profissao_resumo" class="text-muted mb-0 d-none"></p>
-                    </div>
+                <div class="ms-auto d-flex gap-2">
+                    <a class="btn btn-outline-secondary" id="perfil_voltar" href="../html/index.html">Voltar</a>
+                    <button class="btn btn-outline-danger" id="logoff">Sair</button>
                 </div>
             </div>
+        </nav>
 
-            <ul class="nav nav-tabs profile-tabs mb-4" id="perfilTabs" role="tablist">
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link active" id="tab-info" data-bs-toggle="tab" data-bs-target="#painel-info"
-                        type="button" role="tab">Informações</button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-servicos" data-bs-toggle="tab" data-bs-target="#painel-servicos"
-                        type="button" role="tab">Serviços e chamados</button>
-                </li>
-                <li class="nav-item" role="presentation" id="tab_item_acordos">
-                    <button class="nav-link" id="tab-acordos" data-bs-toggle="tab" data-bs-target="#painel-acordos"
-                        type="button" role="tab">Registro de serviços</button>
-                </li>
-                <li class="nav-item" role="presentation" id="tab_item_notificacoes">
-                    <button class="nav-link" id="tab-notificacoes" data-bs-toggle="tab" data-bs-target="#painel-notificacoes"
-                        type="button" role="tab">
-                        Mensagens <span class="badge bg-danger ms-1 d-none" id="badge_notificacoes">0</span>
-                    </button>
-                </li>
-                <li class="nav-item" role="presentation">
-                    <button class="nav-link" id="tab-avaliacoes" data-bs-toggle="tab" data-bs-target="#painel-avaliacoes"
-                        type="button" role="tab">Avaliações</button>
-                </li>
-                <li class="nav-item" role="presentation" id="tab_item_agenda">
-                    <button class="nav-link" id="tab-agenda" data-bs-toggle="tab" data-bs-target="#painel-agenda"
-                        type="button" role="tab">Agenda de Disponibilidade</button>
-                </li>
-            </ul>
+        <main class="app-main container py-5">
+            <div id="perfil_estado_carregando" class="profile-card p-4 bg-white text-center text-secondary">
+                Carregando perfil...
 
-            <div class="tab-content">
-                <div class="tab-pane fade show active" id="painel-info" role="tabpanel">
-                    <section class="section-card p-4">
-                        <h3 class="h5 mb-3">Dados da conta</h3>
-                        <div class="row g-3">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Nome</label>
-                                <input type="text" id="perfil_nome" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Usuário</label>
-                                <input type="text" id="perfil_usuario" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6" id="campo_email">
-                                <label class="form-label fw-semibold">E-mail</label>
-                                <input type="text" id="perfil_email" class="form-control" readonly>
-                            </div>
-                            
-                            <div class="col-md-6" id="campo_telefone">
-                                <label class="form-label fw-semibold">Telefone</label>
-                                <input type="text" id="perfil_telefone" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Tipo de conta</label>
-                                <input type="text" id="perfil_tipo" class="form-control" readonly>
-                            </div>
-                            <div class="col-12" id="campo_descricao_prestador">
-                                <label class="form-label fw-semibold">Sobre o profissional</label>
-                                <textarea id="perfil_descricao" class="form-control" rows="4" readonly></textarea>
-                            </div>
-                            <div class="col-md-6" id="campo_profissao">
-                                <label class="form-label fw-semibold">Profissão</label>
-                                <input type="text" id="perfil_profissao" class="form-control" readonly>
-                            </div>
-                            <div class="col-md-6" id="campo_localidade">
-                                <label class="form-label fw-semibold">Localidade</label>
-                                <input type="text" id="perfil_localidade" class="form-control" readonly>
-                            </div>
+
+            </div>
+
+            <div id="perfil_conteudo" class="d-none">
+                <div class="profile-card p-4 bg-white mb-4">
+                    <div class="d-flex flex-column flex-md-row align-items-md-center gap-4">
+
+                        <div class="profile-avatar" id="perfil_avatar">
+                            <i class="bi bi-person-fill"></i>
                         </div>
-                    </section>
-                </div>
-
-                <div class="tab-pane fade" id="painel-servicos" role="tabpanel">
-                    <section class="section-card p-4">
-                        <p class="text-secondary mb-4" id="perfil_servicos_descricao">
-                            Serviços oferecidos e chamados publicados por esta conta.
-                        </p>
-                        <div id="lista_servicos_perfil" class="row g-4">
+                        <div class="flex-grow-1">
+                            <p class="section-kicker mb-2" id="perfil_contexto">Perfil</p>
+                            <h1 class="page-title mb-2" id="perfil_nome_titulo">-</h1>
+                            <p class="text-secondary mb-2">
+                                <span id="perfil_username">@usuario</span>
+                                <span class="mx-2">·</span>
+                                <span id="perfil_tipo_badge" class="profile-type-badge">-</span>
+                            </p>
+                            <div id="perfil_resumo_avaliacoes" class="profile-rating-summary text-secondary small">
+                            </div>
+                            <p id="perfil_profissao_resumo" class="text-muted mb-0 d-none"></p>
                         </div>
-                    </section>
+                    </div>
                 </div>
 
-                <div class="tab-pane fade" id="painel-acordos" role="tabpanel">
-                    <section class="section-card p-4">
-                        <p class="text-secondary mb-4" id="perfil_acordos_descricao">
-                            ServiÃ§os que jÃ¡ foram acordados na plataforma.
-                        </p>
-                        <div id="lista_servicos_acordados_perfil" class="row g-4"></div>
-                    </section>
-                </div>
+                <ul class="nav nav-tabs profile-tabs mb-4" id="perfilTabs" role="tablist">
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link active" id="tab-info" data-bs-toggle="tab" data-bs-target="#painel-info"
+                            type="button" role="tab">Informações</button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-servicos" data-bs-toggle="tab"
+                            data-bs-target="#painel-servicos" type="button" role="tab">Serviços e chamados</button>
+                    </li>
+                    <li class="nav-item" role="presentation" id="tab_item_acordos">
+                        <button class="nav-link" id="tab-acordos" data-bs-toggle="tab" data-bs-target="#painel-acordos"
+                            type="button" role="tab">Registro de serviços</button>
+                    </li>
+                    <li class="nav-item" role="presentation" id="tab_item_notificacoes">
+                        <button class="nav-link" id="tab-notificacoes" data-bs-toggle="tab"
+                            data-bs-target="#painel-notificacoes" type="button" role="tab">
+                            Mensagens <span class="badge bg-danger ms-1 d-none" id="badge_notificacoes">0</span>
+                        </button>
+                    </li>
+                    <li class="nav-item" role="presentation">
+                        <button class="nav-link" id="tab-avaliacoes" data-bs-toggle="tab"
+                            data-bs-target="#painel-avaliacoes" type="button" role="tab">Avaliações</button>
+                    </li>
+                    <li class="nav-item" role="presentation" id="tab_item_agenda">
+                        <button class="nav-link" id="tab-agenda" data-bs-toggle="tab" data-bs-target="#painel-agenda"
+                            type="button" role="tab">Agenda de Disponibilidade</button>
+                    </li>
+                </ul>
 
-                <div class="tab-pane fade" id="painel-notificacoes" role="tabpanel">
-                    <section class="section-card p-4">
-                        <p class="text-secondary mb-4" id="perfil_notificacoes_descricao">
-                            Solicitacoes, propostas e avisos sobre servicos em andamento.
-                        </p>
-                        <div id="lista_notificacoes_perfil"></div>
-                    </section>
-                </div>
+                <div class="tab-content">
+                    <div class="tab-pane fade show active" id="painel-info" role="tabpanel">
+                        <section class="section-card p-4">
+                            <h3 class="h5 mb-3">Dados da conta</h3>
+                            <div class="row g-3">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Nome</label>
+                                    <input type="text" id="perfil_nome" class="form-control" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Usuário</label>
+                                    <input type="text" id="perfil_usuario" class="form-control" readonly>
+                                </div>
+                                <div class="col-md-6" id="campo_email">
+                                    <label class="form-label fw-semibold">E-mail</label>
+                                    <input type="text" id="perfil_email" class="form-control" readonly>
+                                </div>
 
-                <div class="tab-pane fade" id="painel-avaliacoes" role="tabpanel">
-                    <section class="section-card p-4">
-                        <p class="text-secondary mb-4" id="perfil_avaliacoes_descricao">
-                            Avaliações que outros usuários fizeram sobre esta conta.
-                        </p>
-                        
-                        <div id="lista_avaliacoes_perfil"></div>
-                    </section>
-                </div>
+                                <div class="col-md-6" id="campo_telefone">
+                                    <label class="form-label fw-semibold">Telefone</label>
+                                    <input type="text" id="perfil_telefone" class="form-control" readonly>
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Tipo de conta</label>
+                                    <input type="text" id="perfil_tipo" class="form-control" readonly>
+                                </div>
+                                <div class="col-12" id="campo_descricao_prestador">
+                                    <label class="form-label fw-semibold">Sobre o profissional</label>
+                                    <textarea id="perfil_descricao" class="form-control" rows="4" readonly></textarea>
+                                </div>
+                                <div class="col-md-6" id="campo_profissao">
+                                    <label class="form-label fw-semibold">Profissão</label>
+                                    <input type="text" id="perfil_profissao" class="form-control" readonly>
+                                </div>
+                                <div class="col-md-6" id="campo_localidade">
+                                    <label class="form-label fw-semibold">Localidade</label>
+                                    <input type="text" id="perfil_localidade" class="form-control" readonly>
+                                </div>
+                            </div>
+                        </section>
+                    </div>
 
-                <div class="tab-pane fade" id="painel-agenda" role="tabpanel">
-                    <section class="section-card p-4">
-                        <h3 class="h5 mb-4">Configurar Agenda de Disponibilidade</h3>
-                        <p class="text-secondary mb-4">Marque aqui os dias e horários em que você está indisponível para receber chamados.</p>
-                        
-                        <div class="row g-3 mb-4">
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Data Início</label>
-                                <input type="date" id="agenda_data_inicio" class="form-control">
+                    <div class="tab-pane fade" id="painel-servicos" role="tabpanel">
+                        <section class="section-card p-4">
+                            <p class="text-secondary mb-4" id="perfil_servicos_descricao">
+                                Serviços oferecidos e chamados publicados por esta conta.
+                            </p>
+                            <div id="lista_servicos_perfil" class="row g-4">
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Hora Início</label>
-                                <input type="time" id="agenda_hora_inicio" class="form-control">
+                        </section>
+                    </div>
+
+                    <div class="tab-pane fade" id="painel-acordos" role="tabpanel">
+                        <section class="section-card p-4">
+                            <p class="text-secondary mb-4" id="perfil_acordos_descricao">
+                                ServiÃ§os que jÃ¡ foram acordados na plataforma.
+                            </p>
+                            <div id="lista_servicos_acordados_perfil" class="row g-4"></div>
+                        </section>
+                    </div>
+
+                    <div class="tab-pane fade" id="painel-notificacoes" role="tabpanel">
+                        <section class="section-card p-4">
+                            <p class="text-secondary mb-4" id="perfil_notificacoes_descricao">
+                                Solicitacoes, propostas e avisos sobre servicos em andamento.
+                            </p>
+                            <div id="lista_notificacoes_perfil"></div>
+                        </section>
+                    </div>
+
+                    <div class="tab-pane fade" id="painel-avaliacoes" role="tabpanel">
+                        <section class="section-card p-4">
+                            <p class="text-secondary mb-4" id="perfil_avaliacoes_descricao">
+                                Avaliações que outros usuários fizeram sobre esta conta.
+                            </p>
+
+                            <div id="lista_avaliacoes_perfil"></div>
+                        </section>
+                    </div>
+
+                    <div class="tab-pane fade" id="painel-agenda" role="tabpanel">
+                        <section class="section-card p-4">
+                            <h3 class="h5 mb-4">Configurar Agenda de Disponibilidade</h3>
+                            <p class="text-secondary mb-4">Marque aqui os dias e horários em que você está indisponível
+                                para receber chamados.</p>
+
+                            <div class="row g-3 mb-4">
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Data Início</label>
+                                    <input type="date" id="agenda_data_inicio" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Hora Início</label>
+                                    <input type="time" id="agenda_hora_inicio" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Data Fim</label>
+                                    <input type="date" id="agenda_data_fim" class="form-control">
+                                </div>
+                                <div class="col-md-6">
+                                    <label class="form-label fw-semibold">Hora Fim</label>
+                                    <input type="time" id="agenda_hora_fim" class="form-control">
+                                </div>
+                                <div class="col-12">
+                                    <label class="form-label fw-semibold">Observações (opcional)</label>
+                                    <textarea id="agenda_descricao" class="form-control" rows="2"
+                                        placeholder="Ex: Em férias, fazendo manutenção, etc."></textarea>
+                                </div>
+                                <div class="col-12">
+                                    <button type="button" class="btn btn-brand" id="btn_adicionar_disponibilidade">
+                                        <i class="bi bi-plus-circle me-2"></i>Adicionar Período Ocupado
+                                    </button>
+                                </div>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Data Fim</label>
-                                <input type="date" id="agenda_data_fim" class="form-control">
+
+                            <div id="agenda_mensagem_alerta" class="alert d-none" role="alert"></div>
+
+                            <h5 class="mt-4 mb-3">Períodos Marcados como Ocupado</h5>
+                            <div id="lista_disponibilidades" class="list-group">
+                                <p class="text-muted text-center py-4">Carregando disponibilidades...</p>
                             </div>
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Hora Fim</label>
-                                <input type="time" id="agenda_hora_fim" class="form-control">
-                            </div>
-                            <div class="col-12">
-                                <label class="form-label fw-semibold">Observações (opcional)</label>
-                                <textarea id="agenda_descricao" class="form-control" rows="2" placeholder="Ex: Em férias, fazendo manutenção, etc."></textarea>
-                            </div>
-                            <div class="col-12">
-                                <button type="button" class="btn btn-brand" id="btn_adicionar_disponibilidade">
-                                    <i class="bi bi-plus-circle me-2"></i>Adicionar Período Ocupado
-                                </button>
-                            </div>
+                        </section>
+                    </div>
+                </div>
+            </div>
+        </main>
+
+        <div class="modal fade" id="modalAvaliar" tabindex="-1" aria-hidden="true">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title">Avaliar usuario</h5>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p class="text-secondary small mb-3" id="modal_avaliar_contexto">-</p>
+                        <input type="hidden" id="avaliar_id_negociacao">
+                        <input type="hidden" id="avaliar_id_avaliado">
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Nota (1 a 5)</label>
+                            <select id="avaliar_nota" class="form-select">
+                                <option value="5">5 - Excelente</option>
+                                <option value="4">4 - Bom</option>
+                                <option value="3">3 - Regular</option>
+                                <option value="2">2 - Ruim</option>
+                                <option value="1">1 - Pessimo</option>
+                            </select>
                         </div>
-
-                        <div id="agenda_mensagem_alerta" class="alert d-none" role="alert"></div>
-
-                        <h5 class="mt-4 mb-3">Períodos Marcados como Ocupado</h5>
-                        <div id="lista_disponibilidades" class="list-group">
-                            <p class="text-muted text-center py-4">Carregando disponibilidades...</p>
+                        <div class="mb-3">
+                            <label class="form-label fw-semibold">Comentario (opcional)</label>
+                            <textarea id="avaliar_comentario" class="form-control" rows="3"
+                                placeholder="Conte como foi a experiencia"></textarea>
                         </div>
-                    </section>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-brand" id="btn_enviar_avaliacao">Enviar avaliacao</button>
+                    </div>
                 </div>
             </div>
         </div>
-    </main>
 
-    <div class="modal fade" id="modalAvaliar" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Avaliar usuario</h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Fechar"></button>
-                </div>
-                <div class="modal-body">
-                    <p class="text-secondary small mb-3" id="modal_avaliar_contexto">-</p>
-                    <input type="hidden" id="avaliar_id_negociacao">
-                    <input type="hidden" id="avaliar_id_avaliado">
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Nota (1 a 5)</label>
-                        <select id="avaliar_nota" class="form-select">
-                            <option value="5">5 - Excelente</option>
-                            <option value="4">4 - Bom</option>
-                            <option value="3">3 - Regular</option>
-                            <option value="2">2 - Ruim</option>
-                            <option value="1">1 - Pessimo</option>
-                        </select>
-                    </div>
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Comentario (opcional)</label>
-                        <textarea id="avaliar_comentario" class="form-control" rows="3" placeholder="Conte como foi a experiencia"></textarea>
-                    </div>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                    <button type="button" class="btn btn-brand" id="btn_enviar_avaliacao">Enviar avaliacao</button>
-                </div>
-            </div>
-        </div>
+        <footer class="footer py-3 text-center">
+            <p class="mb-0 text-secondary">© 2025 ConsertaJa. Todos os direitos reservados.</p>
+        </footer>
+
+        <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+        <script src="../js/logoff.js"></script>
+        <script src="../js/valida_sessao.js?v=sessao"></script>
+        <script src="../js/perfil_utils.js?v=3"></script>
+        <script src="../js/perfil.js?v=fluxo4"></script>
+        <script src="../js/agenda_disponibilidade.js?v=1"></script>
     </div>
-
-    <footer class="footer py-3 text-center">
-        <p class="mb-0 text-secondary">© 2025 ConsertaJa. Todos os direitos reservados.</p>
-    </footer>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../js/logoff.js"></script>
-    <script src="../js/valida_sessao.js?v=sessao"></script>
-    <script src="../js/perfil_utils.js?v=2"></script>
-    <script src="../js/perfil.js?v=fluxo3"></script>
-    <script src="../js/agenda_disponibilidade.js?v=1"></script>
-</div>
 </body>
+
 </html>

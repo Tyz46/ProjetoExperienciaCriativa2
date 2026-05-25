@@ -3,7 +3,9 @@ function urlPerfilUsuario(idUsuario) {
     if (!id) {
         return "#";
     }
-    return `../../../home/html/perfil.html?id=${id}`;
+    const pathSegments = window.location.pathname.split('/');
+    const rootPath = pathSegments.length > 1 ? pathSegments.slice(0, 2).join('/') : '';
+    return `${rootPath}/home/html/perfil.html?id=${id}`;
 }
 
 function escaparHtmlPerfil(valor) {

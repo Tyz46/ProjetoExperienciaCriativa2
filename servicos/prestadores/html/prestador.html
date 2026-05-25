@@ -73,43 +73,56 @@
 
                 <div id="filtrosPainel" class="filters-panel">
                     <div class="filters-panel-header">
-                        <p class="text-secondary mb-0">Ajuste categoria, localidade e faixa de preco para encontrar os servicos ideais.</p>
+                        <p class="text-secondary mb-0">Ajuste categoria, localidade e faixa de preco para encontrar os
+                            servicos ideais.</p>
                         <button id="limparFiltros" type="button" class="btn btn-filter-clear btn-sm">
                             <i class="bi bi-arrow-counterclockwise me-1"></i>Limpar filtros
                         </button>
                     </div>
 
                     <div id="filtros" class="row g-3 align-items-end">
-                    <div class="col-md-3">
-                        <label for="filtroCategoria" class="form-label">Categoria</label>
-                        <select id="filtroCategoria" class="form-select">
-                            <option value="">Todas as categorias</option>
-                            <option value="Eletrica">Eletrica</option>
-                            <option value="Limpeza">Limpeza</option>
-                            <option value="Informatica">Informatica</option>
-                            <option value="Pintura">Pintura</option>
-                            <option value="Encanamento">Encanamento</option>
-                            <option value="Montagem">Montagem</option>
-                            <option value="Outros">Outros</option>
-                        </select>
-                    </div>
+                        <div class="col-md-3">
+                            <label for="filtroCategoria" class="form-label">Categoria</label>
+                            <select id="filtroCategoria" class="form-select">
+                                <option value="">Todas as categorias</option>
+                                <option value="Eletrica">Eletrica</option>
+                                <option value="Limpeza">Limpeza</option>
+                                <option value="Informatica">Informatica</option>
+                                <option value="Pintura">Pintura</option>
+                                <option value="Encanamento">Encanamento</option>
+                                <option value="Montagem">Montagem</option>
+                                <option value="Outros">Outros</option>
+                            </select>
+                        </div>
 
-                    <div class="col-md-3">
-                        <label for="filtroLocalidade" class="form-label">Localidade</label>
-                        <input id="filtroLocalidade" class="form-control" placeholder="Ex: Curitiba, Centro, PR">
-                    </div>
+                        <div class="col-md-3">
+                            <label for="filtroLocalidade" class="form-label">Localidade</label>
+                            <input id="filtroLocalidade" class="form-control" placeholder="Ex: Curitiba, Centro, PR">
+                        </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Preço mínimo (R$)</label>
-                        <input type="range" id="filtroPrecoMin" min="0" max="1000" value="0" class="form-range">
-                        <div class="small text-secondary">Valor: <span id="filtroPrecoMinValor">R$ 0,00</span></div>
-                    </div>
+                        <div class="col-md-3">
+                            <label for="filtroNotaMedia" class="form-label">Avaliação mínima</label>
+                            <select id="filtroNotaMedia" class="form-select">
+                                <option value="0">Todas as notas</option>
+                                <option value="1">1 estrela ou mais</option>
+                                <option value="2">2 estrelas ou mais</option>
+                                <option value="3">3 estrelas ou mais</option>
+                                <option value="4">4 estrelas ou mais</option>
+                                <option value="5">5 estrelas</option>
+                            </select>
+                        </div>
 
-                    <div class="col-md-3">
-                        <label class="form-label">Preço máximo (R$)</label>
-                        <input type="range" id="filtroPrecoMax" min="0" max="1000" value="90" class="form-range">
-                        <div class="small text-secondary">Até: <span id="filtroPrecoMaxValor">R$ 90,00</span></div>
-                    </div>
+                        <div class="col-md-3">
+                            <label class="form-label">Preço mínimo (R$)</label>
+                            <input type="range" id="filtroPrecoMin" min="0" max="1000" value="0" class="form-range">
+                            <div class="small text-secondary">Valor: <span id="filtroPrecoMinValor">R$ 0,00</span></div>
+                        </div>
+
+                        <div class="col-md-3">
+                            <label class="form-label">Preço máximo (R$)</label>
+                            <input type="range" id="filtroPrecoMax" min="0" max="1000" value="90" class="form-range">
+                            <div class="small text-secondary">Até: <span id="filtroPrecoMaxValor">R$ 90,00</span></div>
+                        </div>
                     </div>
                 </div>
             </section>
@@ -181,14 +194,17 @@
                     </div>
                     <div class="modal-body">
                         <input type="hidden" id="solicitacao_id_servico">
-                        <p class="text-secondary small">Descreva o que voce precisa. O prestador recebera esta mensagem na aba Mensagens do perfil dele.</p>
+                        <p class="text-secondary small">Descreva o que voce precisa. O prestador recebera esta mensagem
+                            na aba Mensagens do perfil dele.</p>
                         <div class="mb-3">
                             <label class="form-label" for="solicitacao_titulo">Assunto</label>
-                            <input type="text" id="solicitacao_titulo" class="form-control" placeholder="Ex: Instalacao de tomadas">
+                            <input type="text" id="solicitacao_titulo" class="form-control"
+                                placeholder="Ex: Instalacao de tomadas">
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="solicitacao_descricao">O que precisa ser feito?</label>
-                            <textarea id="solicitacao_descricao" class="form-control" rows="4" placeholder="Descreva o problema, urgencia e horarios"></textarea>
+                            <textarea id="solicitacao_descricao" class="form-control" rows="4"
+                                placeholder="Descreva o problema, urgencia e horarios"></textarea>
                         </div>
                         <div class="row">
                             <div class="col-md-6 mb-3">
@@ -205,17 +221,21 @@
                             </div>
                             <div class="col-md-6 mb-3">
                                 <label class="form-label" for="solicitacao_valor">Orcamento sugerido (R$)</label>
-                                <input type="number" step="0.01" id="solicitacao_valor" class="form-control" placeholder="0 = a negociar">
+                                <input type="number" step="0.01" id="solicitacao_valor" class="form-control"
+                                    placeholder="0 = a negociar">
                             </div>
                         </div>
                         <div class="mb-3">
                             <label class="form-label" for="solicitacao_localidade">Localidade</label>
-                            <input type="text" id="solicitacao_localidade" class="form-control" placeholder="Ex: Curitiba - PR">
+                            <input type="text" id="solicitacao_localidade" class="form-control"
+                                placeholder="Ex: Curitiba - PR">
                         </div>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-brand" onclick="enviarSolicitacaoServico()">Enviar solicitacao</button>
+                        <button type="button" class="btn btn-outline-secondary"
+                            data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-brand" onclick="enviarSolicitacaoServico()">Enviar
+                            solicitacao</button>
                     </div>
                 </div>
             </div>

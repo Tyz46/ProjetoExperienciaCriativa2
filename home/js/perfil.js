@@ -325,6 +325,7 @@ function renderizarAvaliacoes(avaliacoes, nomeUsuario) {
         return;
     }
 
+    registros.sort((a, b) => new Date(b.created_at) - new Date(a.created_at));
     lista.innerHTML = registros.map(renderizarItemAvaliacao).join("");
 }
 
@@ -573,8 +574,8 @@ function renderizarItemAvaliacao(avaliacao) {
             </div>
             <p class="small text-secondary mb-1">${rotuloServico}: ${escaparHtml(avaliacao.servico_titulo || "Sem titulo")}</p>
             ${avaliacao.comentario
-        ? `<p class="mb-0 text-muted">${escaparHtml(avaliacao.comentario)}</p>`
-        : '<p class="mb-0 text-secondary small">Sem comentario.</p>'}
+            ? `<p class="mb-0 text-muted">${escaparHtml(avaliacao.comentario)}</p>`
+            : '<p class="mb-0 text-secondary small">Sem comentario.</p>'}
         </article>
     `;
 }
@@ -673,10 +674,54 @@ function formatarCategoria(categoria) {
 }
 
 function formatarData(data) {
-    const dataObj = new Date(data);
+    if (!data) {
+        return "";
+    }
+
+    const textoOriginal = String(data).trim();
+    if (textoOriginal === "") {
+        return "";
+    }
+
+    let dataObj = new Date(textoOriginal);
+    if (Number.isNaN(dataObj.getTime())) {
+        const texto = textoOriginal
+            .replace(/\s+/g, 'T')
+            .replace(/\//g, '-');
+
+        dataObj = new Date(texto);
+
+        if (Number.isNaN(dataObj.getTime())) {
+            const mysqlMatch = texto.match(/^([0-9]{4})-([0-9]{2})-([0-9]{2})(?:[T ]([0-9]{2}):([0-9]{2})(?::([0-9]{2})(?:\.[0-9]+)?)?)?$/);
+            if (mysqlMatch) {
+                const ano = Number(mysqlMatch[1]);
+                const mes = Number(mysqlMatch[2]) - 1;
+                const dia = Number(mysqlMatch[3]);
+                const hora = Number(mysqlMatch[4] || 0);
+                const minuto = Number(mysqlMatch[5] || 0);
+                const segundo = Number(mysqlMatch[6] || 0);
+                dataObj = new Date(ano, mes, dia, hora, minuto, segundo);
+            }
+        }
+    }
+
+    if (Number.isNaN(dataObj.getTime())) {
+        const brMatch = textoOriginal.match(/^([0-9]{2})\/([0-9]{2})\/([0-9]{4})(?:\s+([0-9]{2}):([0-9]{2})(?::([0-9]{2}))?)?$/);
+        if (brMatch) {
+            const dia = Number(brMatch[1]);
+            const mes = Number(brMatch[2]) - 1;
+            const ano = Number(brMatch[3]);
+            const hora = Number(brMatch[4] || 0);
+            const minuto = Number(brMatch[5] || 0);
+            const segundo = Number(brMatch[6] || 0);
+            dataObj = new Date(ano, mes, dia, hora, minuto, segundo);
+        }
+    }
+
     if (Number.isNaN(dataObj.getTime())) {
         return "";
     }
+
     return dataObj.toLocaleDateString("pt-BR", {
         day: "2-digit",
         month: "2-digit",

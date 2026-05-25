@@ -18,13 +18,19 @@ function sqlSelectServicoComUsuario(): string
             s.foto,
             s.origem,
             s.status,
-            s.created_at,
+            DATE_FORMAT(s.created_at, '%Y-%m-%dT%H:%i:%s') AS created_at,
             u.nome AS nome_usuario,
             pp.profissao,
-            pp.descricao AS descricao_especialidades
+            pp.descricao AS descricao_especialidades,
+            COALESCE(pp.nota_media, aval.nota_media, 0) AS nota_media
         FROM servico s
         LEFT JOIN usuario u ON u.id = s.id_prestador
         LEFT JOIN perfil_prestador pp ON pp.id_usuario = s.id_prestador
+        LEFT JOIN (
+            SELECT id_avaliado, ROUND(AVG(nota), 1) AS nota_media
+            FROM avaliacao
+            GROUP BY id_avaliado
+        ) aval ON aval.id_avaliado = s.id_prestador
     ";
 }
 

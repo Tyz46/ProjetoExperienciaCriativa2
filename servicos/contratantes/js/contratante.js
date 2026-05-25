@@ -67,6 +67,7 @@ async function carregarDados() {
 function configurarFiltros() {
     const categoria = document.getElementById("filtroCategoria");
     const localidade = document.getElementById("filtroLocalidade");
+    const notaMedia = document.getElementById("filtroNotaMedia");
     const precoMin = document.getElementById("filtroPrecoMin");
     const precoMax = document.getElementById("filtroPrecoMax");
     const toggle = document.getElementById("toggleFiltros");
@@ -97,7 +98,7 @@ function configurarFiltros() {
         }
     }
 
-    [categoria, localidade, precoMin, precoMax].forEach((el) => {
+    [categoria, localidade, notaMedia, precoMin, precoMax].forEach((el) => {
         if (!el) return;
         el.addEventListener("input", renderizarLista);
         el.addEventListener("change", renderizarLista);
@@ -119,6 +120,7 @@ function configurarFiltros() {
         limpar.addEventListener("click", () => {
             if (categoria) categoria.value = "";
             if (localidade) localidade.value = "";
+            if (notaMedia) notaMedia.value = "0";
             if (precoMin) precoMin.value = 0;
             if (precoMax) precoMax.value = 90;
             atualizarValoresPreco();
@@ -146,8 +148,11 @@ function obterServicosFiltrados() {
     const localidade = (document.getElementById("filtroLocalidade") || {}).value || "";
     const precoMin = Number((document.getElementById("filtroPrecoMin") || {}).value || 0);
     const precoMax = Number((document.getElementById("filtroPrecoMax") || {}).value || 0);
+    const notaMedia = Number((document.getElementById("filtroNotaMedia") || {}).value || 0);
 
     return servicosContratantes.filter((servico) => {
+        const notaRegistro = Number(servico.nota_media || 0);
+        if (!Number.isNaN(notaMedia) && notaMedia > 0 && (Number.isNaN(notaRegistro) || notaRegistro < notaMedia)) return false;
         if (categoria && servico.tipo !== categoria) return false;
 
         if (localidade) {
@@ -206,6 +211,7 @@ function renderizarCardChamado(objeto) {
                     <div class="mb-3">
                         ${linkPerfilUsuario(objeto.id_usuario, objeto.nome_usuario, `Ver perfil de ${objeto.nome_usuario || "cliente"}`)}
                     </div>
+                    ${Number(objeto.nota_media) > 0 ? `<div class="text-secondary small mb-2">Avaliação: ${Number(objeto.nota_media).toFixed(1)} &#9733;</div>` : ""}
 
                     <p class="card-text text-muted service-description-clamp mb-3">${escaparHtml(objeto.descricao || "Sem descricao cadastrada.")}</p>
 
