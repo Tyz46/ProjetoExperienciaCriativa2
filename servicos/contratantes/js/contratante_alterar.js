@@ -1,3 +1,4 @@
+// Tela de alteracao de chamado publicado por cliente.
 let podeAlterar = false;
 let usuarioLogado = null;
 
@@ -24,6 +25,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     buscarDados(id);
 });
 
+// Busca o chamado atual e preenche o formulario de edicao.
 async function buscarDados(id) {
     const retorno = await fetch("../php/contratantes_get.php?id=" + id);
     const resposta = await retorno.json();
@@ -57,6 +59,7 @@ document.getElementById("voltar").addEventListener("click", () => {
     window.location.href = "../html/contratante.html";
 });
 
+// Coleta os novos valores e envia a atualizacao para o backend.
 async function alterar() {
     if (!podeAlterar) {
         alert("Apenas clientes podem alterar chamados nesta aba.");
@@ -103,6 +106,7 @@ async function alterar() {
     }
 }
 
+// Permite edicao apenas para o dono do chamado ou para admin.
 function podeGerenciarRegistro(registro) {
     return usuarioLogado?.tipo === "admin" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
 }

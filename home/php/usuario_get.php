@@ -3,6 +3,8 @@ session_start();
 require_once dirname(__DIR__, 2) . '/php/conexao.php';
 require_once dirname(__DIR__, 2) . '/php/usuario_helpers.php';
 
+// Endpoint de consulta de usuarios.
+// Pode devolver: usuario da sessao, usuario especifico por ID ou a lista completa.
 $retorno = [
     'status' => '',
     'mensagem' => '',
@@ -10,6 +12,7 @@ $retorno = [
 ];
 
 if (isset($_GET['perfil'])) {
+    // Modo usado quando a tela quer apenas os dados do proprio usuario autenticado.
     if (!isset($_SESSION['usuario']['id'])) {
         $retorno = [
             'status' => 'nok',
@@ -29,6 +32,7 @@ if (isset($_GET['perfil'])) {
     );
     $stmt->bind_param('i', $id);
 } elseif (isset($_GET['id'])) {
+    // Modo usado para buscar um unico registro.
     $id = (int) $_GET['id'];
     $stmt = $conexao->prepare(
         'SELECT id, nome, email, telefone, username, username AS usuario, tipo, foto, created_at, updated_at
@@ -36,6 +40,7 @@ if (isset($_GET['perfil'])) {
     );
     $stmt->bind_param('i', $id);
 } else {
+    // Fallback administrativo/listagem.
     $stmt = $conexao->prepare(
         'SELECT id, nome, email, telefone, username, username AS usuario, tipo, foto, created_at, updated_at
          FROM usuario'
@@ -48,6 +53,7 @@ $tabela = [];
 
 if ($resultado->num_rows > 0) {
     while ($linha = $resultado->fetch_assoc()) {
+        // Nunca devolvemos senha nem outros campos sensiveis para o frontend.
         $tabela[] = sanitizarUsuarioSessao($linha);
     }
 

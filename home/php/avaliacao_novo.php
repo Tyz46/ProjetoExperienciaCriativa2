@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/php/fluxo_servico_helpers.php';
 
 header('Content-Type: application/json;charset=utf-8');
 
+// Endpoint que grava a avaliacao final apos a conclusao do servico.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {
@@ -15,6 +16,7 @@ if (!isset($_SESSION['usuario']['id'])) {
 
 $idUsuario = idUsuarioLogado();
 
+// O helper central valida participacao, status da negociacao e nota.
 $dados = [
     'id_negociacao' => $_POST['id_negociacao'] ?? 0,
     'id_avaliado' => $_POST['id_avaliado'] ?? 0,

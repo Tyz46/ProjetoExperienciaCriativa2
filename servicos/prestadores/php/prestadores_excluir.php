@@ -3,6 +3,7 @@ session_start();
 require_once dirname(__DIR__, 3) . '/php/conexao.php';
 require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
 
+// Endpoint de exclusao de servico de prestador.
 $retorno = [
     'status' => 'nok',
     'mensagem' => '',
@@ -24,6 +25,7 @@ $admin = ehAdmin();
 if ($id <= 0) {
     $retorno['mensagem'] = 'Nao foi possivel excluir o registro sem ID.';
 } else {
+    // Admin pode excluir qualquer registro; prestador so o proprio.
     $sql = "DELETE FROM servico WHERE id = ? AND origem = 'prestador'";
     if (!$admin) {
         $sql .= ' AND id_prestador = ?';

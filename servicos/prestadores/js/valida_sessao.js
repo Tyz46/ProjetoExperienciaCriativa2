@@ -1,3 +1,5 @@
+// Confere no backend se a sessao continua valida.
+// Quando nao ha sessao, redireciona a pessoa para a tela de login.
 async function valida_sessao() {
     try {
         const retorno = await fetch("../../../php/valida_sessao.php", {

@@ -1,8 +1,10 @@
+// Acao principal do formulario de login.
 document.getElementById("enviar").addEventListener("click", consulta);
 document.getElementById("novo").addEventListener("click", () => {
     window.location.href = "../html/cadastro.html";
 });
 
+// Le os campos, chama o endpoint de login e trata tanto JSON valido quanto erro bruto de PHP.
 async function consulta() {
     const usuario = document.getElementById("usuario").value.trim();
     const senha = document.getElementById("senha").value.trim();

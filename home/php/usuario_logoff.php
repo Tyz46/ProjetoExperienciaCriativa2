@@ -1,4 +1,5 @@
 <?php
+// Encerra a sessao atual para efetuar o logoff.
 session_start();
 session_unset();
 session_destroy();

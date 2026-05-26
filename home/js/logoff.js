@@ -1,6 +1,7 @@
 const btnLogoff = document.getElementById("logoff");
 
 if (btnLogoff) {
+    // Dispara o endpoint de logoff e volta para a tela de login.
     btnLogoff.addEventListener("click", async () => {
         try {
             const retorno = await fetch("../php/usuario_logoff.php");

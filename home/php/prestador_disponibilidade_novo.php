@@ -2,6 +2,7 @@
 session_start();
 require_once dirname(__DIR__, 2) . '/php/conexao.php';
 
+// Endpoint para o prestador marcar periodos em que estara ocupado/indisponivel.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {
@@ -27,6 +28,7 @@ $dataFim = trim($_POST['data_fim'] ?? '');
 $horaFim = trim($_POST['hora_fim'] ?? '');
 $descricao = trim($_POST['descricao'] ?? '');
 
+// Valida se o formulario enviou o minimo necessario para montar o intervalo.
 // Validar campos
 if ($dataInicio === '' || $horaInicio === '' || $dataFim === '' || $horaFim === '') {
     $retorno['mensagem'] = 'Preencha todos os campos obrigatórios.';
@@ -35,6 +37,7 @@ if ($dataInicio === '' || $horaInicio === '' || $dataFim === '' || $horaFim === 
     exit;
 }
 
+// Impede formatos invalidos antes de criar os objetos DateTime.
 // Validar formato de data e hora
 if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataInicio) || !preg_match('/^\d{2}:\d{2}$/', $horaInicio) || 
     !preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataFim) || !preg_match('/^\d{2}:\d{2}$/', $horaFim)) {
@@ -45,6 +48,7 @@ if (!preg_match('/^\d{4}-\d{2}-\d{2}$/', $dataInicio) || !preg_match('/^\d{2}:\d
 }
 
 // Validar se a data fim e hora fim são maiores que data início e hora início
+// O periodo final precisa vir depois do inicio.
 $dt_inicio = new DateTime($dataInicio . ' ' . $horaInicio);
 $dt_fim = new DateTime($dataFim . ' ' . $horaFim);
 
@@ -56,6 +60,7 @@ if ($dt_fim <= $dt_inicio) {
 }
 
 // Verificar se já existe disponibilidade no mesmo período
+// Consulta para bloquear sobreposicao de horarios.
 $sql_verificar = 'SELECT id FROM prestador_disponibilidade 
                    WHERE id_prestador = ? 
                    AND data_inicio <= ?
@@ -94,6 +99,7 @@ if ($resultado_verificar->num_rows > 0) {
 $stmt_verificar->close();
 
 // Inserir nova disponibilidade
+// So depois de todas as validacoes o periodo e gravado no banco.
 $sql = 'INSERT INTO prestador_disponibilidade 
         (id_prestador, data_inicio, hora_inicio, data_fim, hora_fim, status, descricao) 
         VALUES (?, ?, ?, ?, ?, ?, ?)';

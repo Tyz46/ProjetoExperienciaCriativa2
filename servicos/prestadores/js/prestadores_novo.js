@@ -1,3 +1,4 @@
+// Tela de cadastro de novo servico publicado por prestador.
 const HABILIDADES_POR_PROFISSAO = {
     Eletricista: [
         "Instalacao eletrica",
@@ -57,6 +58,7 @@ document.getElementById("voltar").addEventListener("click", () => {
     window.location.href = "../html/prestador.html";
 });
 
+// Atualiza a lista de habilidades sempre que a profissao muda.
 function configurarHabilidades() {
     const profissao = document.getElementById("profissao");
     profissao.addEventListener("change", () => {
@@ -65,6 +67,7 @@ function configurarHabilidades() {
     renderizarHabilidades("");
 }
 
+// Coleta os campos do formulario e envia o novo servico para o backend.
 async function novo() {
     if (!podeCadastrar) {
         alert("Apenas prestadores podem criar servicos nesta aba.");
@@ -117,6 +120,7 @@ async function novo() {
     }
 }
 
+// Renderiza os checkboxes de habilidades sugeridas para a profissao escolhida.
 function renderizarHabilidades(profissao, selecionadas = []) {
     const container = document.getElementById("habilidadesGrupo");
     const habilidades = HABILIDADES_POR_PROFISSAO[profissao] || [];
@@ -139,18 +143,21 @@ function renderizarHabilidades(profissao, selecionadas = []) {
     `).join("");
 }
 
+// Le apenas as habilidades marcadas pela pessoa usuaria.
 function obterHabilidadesSelecionadas() {
     return Array.from(document.querySelectorAll('input[name="habilidades"]:checked'))
         .map((campo) => campo.value.trim())
         .filter(Boolean);
 }
 
+// Anexa todas as fotos escolhidas ao FormData antes do envio.
 function adicionarFotos(fd, fotos) {
     for (const foto of fotos) {
         fd.append("fotos[]", foto);
     }
 }
 
+// Escapa caracteres especiais antes de inserir texto em HTML.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor;

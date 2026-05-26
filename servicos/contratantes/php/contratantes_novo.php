@@ -4,6 +4,7 @@ require_once dirname(__DIR__, 3) . '/php/conexao.php';
 require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
 require_once dirname(__DIR__, 3) . '/php/servico_helpers.php';
 
+// Endpoint de cadastro de chamado publicado por cliente.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!usuarioTemTipo(['cliente', 'admin'])) {
@@ -21,9 +22,11 @@ $valor = trim($_POST['valor'] ?? '');
 $localidade = trim($_POST['localidade'] ?? '');
 $idUsuario = idUsuarioLogado();
 
+// Valida o minimo necessario para publicar um chamado.
 if ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $localidade === '') {
     $retorno['mensagem'] = 'Preencha todos os campos.';
 } else {
+    // Salva as fotos primeiro para depois gravar o caminho no banco.
     $fotos = salvarFotosServico(ORIGEM_CLIENTE);
     $foto = count($fotos) > 0 ? $fotos[0] : null;
     $status = STATUS_SERVICO_ATIVO;

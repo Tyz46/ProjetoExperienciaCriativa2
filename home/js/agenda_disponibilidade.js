@@ -5,6 +5,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     setTimeout(inicializarAgenda, 500);
 });
 
+// So ativa a agenda quando a pagina de perfil ja carregou e o dono do perfil e prestador.
 function inicializarAgenda() {
     // Verificar se estamos no painel de agenda
     if (!document.getElementById("painel-agenda")) return;
@@ -23,6 +24,7 @@ function inicializarAgenda() {
     }
 }
 
+// Liga o botao de adicionar periodo ao handler correspondente.
 function configurarEventosAgenda() {
     const btnAdicionar = document.getElementById("btn_adicionar_disponibilidade");
     
@@ -31,6 +33,7 @@ function configurarEventosAgenda() {
     }
 }
 
+// Busca do backend todos os periodos ocupados do prestador logado.
 async function carregarDisponibilidades() {
     try {
         const retorno = await fetch("../php/prestador_disponibilidade_get.php", {
@@ -50,6 +53,7 @@ async function carregarDisponibilidades() {
     }
 }
 
+// Desenha a lista de periodos ocupados e liga os botoes de exclusao.
 function renderizarDisponibilidades(disponibilidades) {
     const lista = document.getElementById("lista_disponibilidades");
     
@@ -84,6 +88,7 @@ function renderizarDisponibilidades(disponibilidades) {
     });
 }
 
+// Envia um novo intervalo de indisponibilidade para o backend.
 async function adicionarDisponibilidade() {
     const dataInicio = document.getElementById("agenda_data_inicio").value;
     const horaInicio = document.getElementById("agenda_hora_inicio").value;
@@ -136,6 +141,7 @@ async function adicionarDisponibilidade() {
     }
 }
 
+// Exclui um periodo existente depois da confirmacao do usuario.
 async function removerDisponibilidade(id) {
     if (!confirm("Tem certeza que deseja remover este período?")) {
         return;
@@ -164,6 +170,7 @@ async function removerDisponibilidade(id) {
     }
 }
 
+// Exibe feedback visual temporario logo abaixo do formulario de agenda.
 function mostrarMensagemAgenda(mensagem, tipo = "info") {
     const alerta = document.getElementById("agenda_mensagem_alerta");
     alerta.className = `alert alert-${tipo}`;
@@ -176,11 +183,13 @@ function mostrarMensagemAgenda(mensagem, tipo = "info") {
     }, 5000);
 }
 
+// Formata data ISO para o padrao brasileiro.
 function formatarData(data) {
     const d = new Date(data + 'T00:00:00');
     return d.toLocaleDateString('pt-BR', { year: 'numeric', month: '2-digit', day: '2-digit' });
 }
 
+// Escapa caracteres especiais antes de renderizar descricoes em HTML.
 function escaparHtml(texto) {
     const map = {
         '&': '&amp;',

@@ -1,3 +1,4 @@
+// Tela de cadastro de novo chamado publicado por cliente.
 let podeCadastrar = false;
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -16,6 +17,7 @@ document.getElementById("voltar").addEventListener("click", () => {
     window.location.href = "../html/contratante.html";
 });
 
+// Coleta os campos do formulario e envia o novo chamado para o backend.
 async function cadastrar() {
     if (!podeCadastrar) {
         alert("Apenas clientes podem criar chamados nesta aba.");
@@ -70,6 +72,7 @@ async function cadastrar() {
     }
 }
 
+// Anexa todas as fotos escolhidas ao FormData antes do envio.
 function adicionarFotos(fd, fotos) {
     for (const foto of fotos) {
         fd.append("fotos[]", foto);

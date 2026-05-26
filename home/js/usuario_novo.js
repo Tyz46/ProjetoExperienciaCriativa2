@@ -1,3 +1,4 @@
+// Tela administrativa/legada de cadastro de usuario.
 document.addEventListener("DOMContentLoaded", () => {
     valida_sessao();
 })
@@ -10,6 +11,7 @@ document.getElementById('voltar').addEventListener('click', () => {
     window.location.href = '../html/registros.html';
 });
 
+// Envia os dados do formulario para criar um novo usuario.
 async function novo(){
     var nome    = document.getElementById("nome").value;
     var usuario = document.getElementById("usuario").value;

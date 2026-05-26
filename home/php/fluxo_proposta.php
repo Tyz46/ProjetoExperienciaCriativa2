@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/php/fluxo_servico_helpers.php';
 
 header('Content-Type: application/json;charset=utf-8');
 
+// Endpoint usado quando um prestador aceita um chamado de cliente.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {

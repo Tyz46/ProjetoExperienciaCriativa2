@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/php/fluxo_servico_helpers.php';
 
 header('Content-Type: application/json;charset=utf-8');
 
+// Endpoint usado quando um cliente envia solicitacao para um servico de prestador.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {
@@ -22,6 +23,7 @@ if ($idServico <= 0) {
     exit;
 }
 
+// O helper recebe um pacote unico com os detalhes da solicitacao.
 $dados = [
     'titulo' => $_POST['titulo'] ?? '',
     'descricao' => $_POST['descricao'] ?? '',

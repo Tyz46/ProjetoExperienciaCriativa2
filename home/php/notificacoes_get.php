@@ -5,6 +5,7 @@ require_once dirname(__DIR__, 2) . '/php/fluxo_servico_helpers.php';
 
 header('Content-Type: application/json;charset=utf-8');
 
+// Endpoint da central de mensagens do perfil.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {
@@ -14,6 +15,7 @@ if (!isset($_SESSION['usuario']['id'])) {
 }
 
 $idUsuario = idUsuarioLogado();
+// Busca as mensagens e tambem a quantidade ainda pendente de resposta.
 $lista = listarNotificacoesUsuario($conexao, $idUsuario);
 $pendentes = contarNotificacoesPendentes($conexao, $idUsuario);
 $conexao->close();

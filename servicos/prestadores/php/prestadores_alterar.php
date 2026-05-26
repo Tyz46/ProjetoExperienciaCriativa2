@@ -4,6 +4,7 @@ require_once dirname(__DIR__, 3) . '/php/conexao.php';
 require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
 require_once dirname(__DIR__, 3) . '/php/servico_helpers.php';
 
+// Endpoint de alteracao de servico de prestador.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!usuarioTemTipo(['prestador', 'admin'])) {
@@ -26,6 +27,7 @@ $localidade = trim($_POST['localidade'] ?? '');
 $idUsuario = idUsuarioLogado();
 $admin = ehAdmin();
 
+// Valida campos e a existencia do ID antes de alterar.
 if (
     $id <= 0 ||
     $nome === '' ||
@@ -38,6 +40,7 @@ if (
 ) {
     $retorno['mensagem'] = 'Preencha todos os campos obrigatorios.';
 } else {
+    // Primeiro confirma se o usuario tem permissao para alterar este servico.
     $sqlPermissao = "SELECT id, id_prestador FROM servico WHERE id = ? AND origem = 'prestador'";
     if (!$admin) {
         $sqlPermissao .= ' AND id_prestador = ?';
@@ -86,6 +89,7 @@ if (
         }
 
         if ($stmt->execute()) {
+            // Depois da alteracao principal, atualiza perfil e habilidades relacionadas.
             upsertPerfilPrestador($conexao, $idPrestador, $profissao, $descricaoEspecialidades, $localidade);
             sincronizarHabilidadesServico($conexao, $id, $habilidades);
 

@@ -1,6 +1,7 @@
 <?php
     require_once dirname(__DIR__, 2) . '/php/conexao.php';
 
+    // Endpoint de exclusao de usuario por ID.
     $retorno = [
         'status'    => '', // ok ou nok
         'mensagem'  => '', // mensagem de sucesso ou erro

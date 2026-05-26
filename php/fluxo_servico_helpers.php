@@ -3,12 +3,14 @@
 require_once __DIR__ . '/usuario_helpers.php';
 require_once __DIR__ . '/servico_helpers.php';
 
+// Estados possiveis da negociacao entre cliente e prestador.
 const NEG_STATUS_PENDENTE = 'pendente';
 const NEG_STATUS_ACEITA = 'aceita';
 const NEG_STATUS_RECUSADA = 'recusada';
 const NEG_STATUS_EM_ANDAMENTO = 'em_andamento';
 const NEG_STATUS_FINALIZADA = 'finalizada';
 
+// Tipos de notificacao usados na central de mensagens do perfil.
 const NOTIF_SOLICITACAO = 'solicitacao_servico';
 const NOTIF_PROPOSTA = 'proposta_trabalho';
 const NOTIF_ACEITA = 'resposta_aceita';
@@ -16,6 +18,9 @@ const NOTIF_RECUSADA = 'resposta_recusada';
 const NOTIF_FINALIZACAO = 'confirmar_finalizacao';
 const NOTIF_AVALIAR = 'avaliar';
 
+/**
+ * Busca os dados minimos do servico para validar o fluxo de negociacao.
+ */
 function carregarServicoParaFluxo(mysqli $conexao, int $idServico): ?array
 {
     $stmt = $conexao->prepare(
@@ -33,6 +38,9 @@ function carregarServicoParaFluxo(mysqli $conexao, int $idServico): ?array
     return $servico;
 }
 
+/**
+ * Impede duplicar uma negociacao ativa para o mesmo servico e usuario.
+ */
 function existeNegociacaoAtiva(mysqli $conexao, int $idServico, int $idUsuario): bool
 {
     $sql = "
@@ -52,6 +60,9 @@ function existeNegociacaoAtiva(mysqli $conexao, int $idServico, int $idUsuario):
     return $existe;
 }
 
+/**
+ * Cria uma notificacao ligada ou nao a uma negociacao.
+ */
 function criarNotificacao(
     mysqli $conexao,
     int $idUsuario,
@@ -86,6 +97,9 @@ function criarNotificacao(
     return $id;
 }
 
+/**
+ * Carrega um resumo do usuario que sera usado em textos e notificacoes.
+ */
 function carregarUsuarioResumo(mysqli $conexao, int $idUsuario): ?array
 {
     $stmt = $conexao->prepare('SELECT id, nome, username, tipo, foto FROM usuario WHERE id = ?');
@@ -98,6 +112,9 @@ function carregarUsuarioResumo(mysqli $conexao, int $idUsuario): ?array
     return $usuario;
 }
 
+/**
+ * Fluxo usado quando um cliente solicita um servico publicado por um prestador.
+ */
 function criarSolicitacaoCliente(mysqli $conexao, int $idCliente, int $idServico, array $dados): array
 {
     if (!usuarioTemTipo(['cliente', 'admin'])) {
@@ -185,6 +202,9 @@ function criarSolicitacaoCliente(mysqli $conexao, int $idCliente, int $idServico
     ];
 }
 
+/**
+ * Fluxo usado quando um prestador aceita um chamado publicado por um cliente.
+ */
 function criarPropostaPrestador(mysqli $conexao, int $idPrestador, int $idServico, string $mensagemOpcional = ''): array
 {
     if (!usuarioTemTipo(['prestador', 'admin'])) {
@@ -248,6 +268,9 @@ function criarPropostaPrestador(mysqli $conexao, int $idPrestador, int $idServic
     ];
 }
 
+/**
+ * Recupera uma negociacao junto com o status atual do servico associado.
+ */
 function carregarNegociacao(mysqli $conexao, int $idNegociacao): ?array
 {
     $sql = "
@@ -266,6 +289,9 @@ function carregarNegociacao(mysqli $conexao, int $idNegociacao): ?array
     return $neg;
 }
 
+/**
+ * Confere se o usuario faz parte da negociacao como cliente ou prestador.
+ */
 function usuarioParticipaNegociacao(array $negociacao, int $idUsuario): bool
 {
     return in_array($idUsuario, [
@@ -274,6 +300,9 @@ function usuarioParticipaNegociacao(array $negociacao, int $idUsuario): bool
     ], true);
 }
 
+/**
+ * Processa a resposta de uma negociacao pendente: aceitar ou recusar.
+ */
 function responderNegociacaoPendente(mysqli $conexao, int $idUsuario, int $idNegociacao, string $resposta): array
 {
     $neg = carregarNegociacao($conexao, $idNegociacao);
@@ -355,6 +384,9 @@ function responderNegociacaoPendente(mysqli $conexao, int $idUsuario, int $idNeg
     return ['ok' => true, 'mensagem' => 'Solicitacao aceita. Servico em andamento.'];
 }
 
+/**
+ * Assim que o servico entra em andamento, os dois lados recebem a pergunta de finalizacao.
+ */
 function enviarNotificacoesFinalizacao(mysqli $conexao, array $neg): void
 {
     $tituloServico = $neg['servico_titulo'] ?? 'servico';
@@ -383,6 +415,9 @@ function enviarNotificacoesFinalizacao(mysqli $conexao, array $neg): void
     );
 }
 
+/**
+ * Marca como respondidas as notificacoes que abriram a negociacao.
+ */
 function marcarNotificacoesNegociacaoRespondidas(mysqli $conexao, int $idNegociacao, string $resposta): void
 {
     $stmt = $conexao->prepare(
@@ -395,6 +430,9 @@ function marcarNotificacoesNegociacaoRespondidas(mysqli $conexao, int $idNegocia
     $stmt->close();
 }
 
+/**
+ * Registra a resposta da etapa de finalizacao e dispara o fechamento do servico quando necessario.
+ */
 function responderFinalizacao(mysqli $conexao, int $idUsuario, int $idNotificacao, string $resposta): array
 {
     $notif = carregarNotificacao($conexao, $idNotificacao);
@@ -457,6 +495,9 @@ function responderFinalizacao(mysqli $conexao, int $idUsuario, int $idNotificaca
     return ['ok' => true, 'mensagem' => 'Resposta registrada.'];
 }
 
+/**
+ * Fecha a negociacao e o servico quando ha confirmacao suficiente para encerrar o atendimento.
+ */
 function finalizarNegociacaoSeNecessario(mysqli $conexao, int $idNegociacao): void
 {
     $neg = carregarNegociacao($conexao, $idNegociacao);
@@ -485,6 +526,9 @@ function finalizarNegociacaoSeNecessario(mysqli $conexao, int $idNegociacao): vo
     enviarNotificacoesAvaliacao($conexao, $neg);
 }
 
+/**
+ * Apos a finalizacao, pede que cliente e prestador se avaliem mutuamente.
+ */
 function enviarNotificacoesAvaliacao(mysqli $conexao, array $neg): void
 {
     $titulo = $neg['servico_titulo'] ?? 'servico';
@@ -519,6 +563,9 @@ function enviarNotificacoesAvaliacao(mysqli $conexao, array $neg): void
     }
 }
 
+/**
+ * Evita que a mesma pessoa avalie a outra duas vezes na mesma negociacao.
+ */
 function usuarioJaAvaliou(mysqli $conexao, int $idNegociacao, int $idAvaliador, int $idAvaliado): bool
 {
     $stmt = $conexao->prepare(
@@ -532,6 +579,9 @@ function usuarioJaAvaliou(mysqli $conexao, int $idNegociacao, int $idAvaliador, 
     return $existe;
 }
 
+/**
+ * Recupera uma notificacao especifica para validar a resposta recebida do frontend.
+ */
 function carregarNotificacao(mysqli $conexao, int $idNotificacao): ?array
 {
     $stmt = $conexao->prepare('SELECT * FROM notificacao WHERE id = ?');
@@ -544,6 +594,9 @@ function carregarNotificacao(mysqli $conexao, int $idNotificacao): ?array
     return $notif;
 }
 
+/**
+ * Lista as notificacoes do usuario ja com as acoes possiveis calculadas.
+ */
 function listarNotificacoesUsuario(mysqli $conexao, int $idUsuario): array
 {
     $sql = "
@@ -588,6 +641,9 @@ function listarNotificacoesUsuario(mysqli $conexao, int $idUsuario): array
     return $lista;
 }
 
+/**
+ * Define quais botoes o frontend deve mostrar para cada tipo de notificacao.
+ */
 function obterAcoesNotificacao(array $notif): array
 {
     if ((int) $notif['respondida'] === 1 || (int) $notif['requer_acao'] === 0) {
@@ -607,6 +663,9 @@ function obterAcoesNotificacao(array $notif): array
     }
 }
 
+/**
+ * Salva a avaliacao final de um usuario sobre o outro e atualiza a media do prestador.
+ */
 function registrarAvaliacao(mysqli $conexao, int $idAvaliador, array $dados): array
 {
     $idNegociacao = (int) ($dados['id_negociacao'] ?? 0);
@@ -663,6 +722,9 @@ function registrarAvaliacao(mysqli $conexao, int $idAvaliador, array $dados): ar
     return ['ok' => true, 'mensagem' => 'Avaliacao registrada com sucesso.'];
 }
 
+/**
+ * Recalcula a media de notas do prestador a partir da tabela de avaliacoes.
+ */
 function atualizarNotaMediaPrestador(mysqli $conexao, int $idUsuario): void
 {
     $stmt = $conexao->prepare(
@@ -683,6 +745,9 @@ function atualizarNotaMediaPrestador(mysqli $conexao, int $idUsuario): void
     $stmt->close();
 }
 
+/**
+ * Conta quantas notificacoes ainda aguardam uma acao do usuario.
+ */
 function contarNotificacoesPendentes(mysqli $conexao, int $idUsuario): int
 {
     $stmt = $conexao->prepare(

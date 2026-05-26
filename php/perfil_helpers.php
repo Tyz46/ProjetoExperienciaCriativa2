@@ -3,6 +3,10 @@
 require_once __DIR__ . '/servico_helpers.php';
 require_once __DIR__ . '/usuario_helpers.php';
 
+/**
+ * Reune todos os dados necessarios para montar a tela de perfil.
+ * Decide tambem o que pode ou nao ser exibido publicamente.
+ */
 function carregarPerfilCompleto(mysqli $conexao, int $idUsuario, int $idVisitante): array
 {
     $stmt = $conexao->prepare(
@@ -47,6 +51,9 @@ function carregarPerfilCompleto(mysqli $conexao, int $idUsuario, int $idVisitant
     ];
 }
 
+/**
+ * Carrega apenas os dados complementares do perfil profissional.
+ */
 function carregarPerfilPrestador(mysqli $conexao, int $idUsuario): ?array
 {
     $stmt = $conexao->prepare(
@@ -62,6 +69,9 @@ function carregarPerfilPrestador(mysqli $conexao, int $idUsuario): ?array
     return $perfil;
 }
 
+/**
+ * Lista as avaliacoes recebidas por um usuario junto com informacoes do avaliador e do servico.
+ */
 function carregarAvaliacoesRecebidas(mysqli $conexao, int $idUsuario): array
 {
     $sql = "
@@ -96,6 +106,9 @@ function carregarAvaliacoesRecebidas(mysqli $conexao, int $idUsuario): array
     return $lista;
 }
 
+/**
+ * Calcula media e quantidade total de avaliacoes para exibir no resumo do perfil.
+ */
 function calcularResumoAvaliacoes(array $avaliacoes, ?array $perfilPrestador): array
 {
     $total = count($avaliacoes);
@@ -117,6 +130,9 @@ function calcularResumoAvaliacoes(array $avaliacoes, ?array $perfilPrestador): a
     ];
 }
 
+/**
+ * Carrega todos os servicos publicados por um usuario e separa por origem.
+ */
 function carregarServicosDoUsuario(mysqli $conexao, int $idUsuario): array
 {
     $sql = sqlSelectServicoComUsuario() . '
@@ -151,6 +167,10 @@ function carregarServicosDoUsuario(mysqli $conexao, int $idUsuario): array
     ];
 }
 
+/**
+ * Lista os servicos que ja viraram acordo entre cliente e prestador.
+ * Esses dados alimentam a aba "Acordos" do perfil proprio.
+ */
 function carregarServicosAcordadosDoUsuario(mysqli $conexao, int $idUsuario): array
 {
     $sql = "
@@ -215,6 +235,9 @@ function carregarServicosAcordadosDoUsuario(mysqli $conexao, int $idUsuario): ar
     return $lista;
 }
 
+/**
+ * Ajusta uma linha bruta da negociacao para um formato pronto para renderizacao no frontend.
+ */
 function normalizarServicoAcordado(array $linha, int $idUsuario): array
 {
     $usuarioComoCliente = (int) $linha['id_cliente'] === $idUsuario;
@@ -269,6 +292,9 @@ function normalizarServicoAcordado(array $linha, int $idUsuario): array
     return $linha;
 }
 
+/**
+ * Traduz o status tecnico da negociacao para um rotulo amigavel.
+ */
 function rotuloStatusAcordo(string $status): string
 {
     $mapa = [
@@ -280,6 +306,9 @@ function rotuloStatusAcordo(string $status): string
     return $mapa[$status] ?? 'Acordado';
 }
 
+/**
+ * Traduz o tipo salvo no banco para o rotulo apresentado na interface.
+ */
 function rotuloTipoUsuario(string $tipo): string
 {
     $mapa = [

@@ -2,6 +2,7 @@
 require_once dirname(__DIR__, 2) . '/php/conexao.php';
 require_once dirname(__DIR__, 2) . '/php/auth_senha.php';
 
+// Endpoint de alteracao basica de usuario.
 $retorno = [
     'status' => '',
     'mensagem' => '',
@@ -9,11 +10,13 @@ $retorno = [
 ];
 
 if (isset($_GET['id'])) {
+    // Atualiza apenas os campos recebidos pela tela atual.
     $id = (int) $_GET['id'];
     $nome = trim($_POST['nome'] ?? '');
     $username = trim($_POST['usuario'] ?? $_POST['username'] ?? '');
     $senha = $_POST['senha'] ?? '';
 
+    // A senha sempre e regravada em hash.
     $senhaHash = hash_senha($senha);
     $stmt = $conexao->prepare(
         'UPDATE usuario SET nome = ?, username = ?, senha_hash = ? WHERE id = ?'

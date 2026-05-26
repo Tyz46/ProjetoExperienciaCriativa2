@@ -1,3 +1,4 @@
+// Controla a vitrine de chamados de clientes: filtros, detalhes, propostas e gerenciamento.
 let usuarioLogado = null;
 let servicosContratantes = [];
 
@@ -5,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     iniciarPagina();
 });
 
+// Valida a sessao, carrega permissao da pessoa logada e inicializa a tela.
 async function iniciarPagina() {
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
@@ -27,6 +29,7 @@ document.getElementById("logoff").addEventListener("click", () => {
     logoff();
 });
 
+// Encerra a sessao atual e volta para o login.
 async function logoff() {
     const retorno = await fetch("../../../home/php/usuario_logoff.php");
     const resposta = await retorno.json();
@@ -38,6 +41,7 @@ async function logoff() {
     }
 }
 
+// Busca no backend a lista de chamados de clientes disponiveis.
 async function carregarDados() {
     const lista = document.getElementById("lista");
 
@@ -64,6 +68,7 @@ async function carregarDados() {
     }
 }
 
+// Liga os campos de filtro para re-renderizar a lista em tempo real.
 function configurarFiltros() {
     const categoria = document.getElementById("filtroCategoria");
     const localidade = document.getElementById("filtroLocalidade");
@@ -129,6 +134,7 @@ function configurarFiltros() {
     }
 }
 
+// Renderiza a grade principal de cards com base nos filtros atuais.
 function renderizarLista() {
     const lista = document.getElementById("lista");
     const registros = obterServicosFiltrados();
@@ -143,6 +149,7 @@ function renderizarLista() {
     atualizarResultadoResumo(registros.length);
 }
 
+// Aplica todos os filtros ativos sobre os chamados carregados em memoria.
 function obterServicosFiltrados() {
     const categoria = (document.getElementById("filtroCategoria") || {}).value || "";
     const localidade = (document.getElementById("filtroLocalidade") || {}).value || "";
@@ -168,12 +175,14 @@ function obterServicosFiltrados() {
     });
 }
 
+// Atualiza o resumo visual com a quantidade de chamados exibidos.
 function atualizarResultadoResumo(total) {
     const resumo = document.getElementById("resultadoResumo");
     if (!resumo) return;
     resumo.textContent = total === 1 ? "1 chamado exibido" : `${total} chamados exibidos`;
 }
 
+// Exclui um chamado do proprio usuario quando a permissao permite.
 async function excluir(id) {
     if (!podeCriar()) {
         alert("Apenas clientes podem excluir chamados nesta aba.");
@@ -196,6 +205,7 @@ async function excluir(id) {
     }
 }
 
+// Monta o card visual de um chamado publicado por cliente.
 function renderizarCardChamado(objeto) {
     return `
         <div class="col-md-6 col-xl-4">
@@ -232,6 +242,7 @@ function renderizarCardChamado(objeto) {
     `;
 }
 
+// Renderiza so a foto principal do chamado.
 function renderizarFoto(objeto) {
     const foto = obterPrimeiraFoto(objeto.foto);
 
@@ -242,6 +253,7 @@ function renderizarFoto(objeto) {
     return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do chamado">`;
 }
 
+// Aceita string simples ou JSON com varias fotos e devolve a primeira.
 function obterPrimeiraFoto(valor) {
     if (!valor) {
         return "";
@@ -255,6 +267,7 @@ function obterPrimeiraFoto(valor) {
     }
 }
 
+// Mostra botoes de alterar/excluir apenas para quem pode gerenciar o registro.
 function renderizarAcoes(objeto) {
     if (!podeGerenciarRegistro(objeto)) {
         return "";
@@ -268,6 +281,7 @@ function renderizarAcoes(objeto) {
     `;
 }
 
+// Preenche o modal de detalhes com os dados do chamado selecionado.
 function abrirDetalheChamado(id) {
     const servico = servicosContratantes.find((item) => Number(item.id) === Number(id));
     if (!servico) {
@@ -287,6 +301,7 @@ function abrirDetalheChamado(id) {
     document.getElementById("modalDetalheChamadoDescricao").textContent = servico.descricao || "Sem descricao cadastrada.";
 }
 
+// Template de estado vazio da listagem.
 function renderizarVazio(mensagem = "Nenhum chamado de contratante foi encontrado no momento.") {
     return `
         <div class="col-12">
@@ -299,6 +314,7 @@ function renderizarVazio(mensagem = "Nenhum chamado de contratante foi encontrad
     `;
 }
 
+// Formata valores monetarios no padrao brasileiro.
 function formatarMoeda(valor) {
     const numero = Number(valor);
 
@@ -312,10 +328,12 @@ function formatarMoeda(valor) {
     }).format(numero);
 }
 
+// Garante um fallback quando a categoria nao vier preenchida.
 function formatarCategoria(categoria) {
     return categoria || "Sem categoria";
 }
 
+// Esconde o botao de criar quando o tipo de usuario nao pode publicar nesta aba.
 function aplicarPermissoes() {
     const botaoNovo = document.getElementById("novo");
 
@@ -324,10 +342,12 @@ function aplicarPermissoes() {
     }
 }
 
+// Define quem pode criar chamados na aba de contratantes.
 function podeCriar() {
     return usuarioLogado?.tipo === "cliente" || usuarioLogado?.tipo === "admin";
 }
 
+// Define quem pode alterar/excluir um chamado especifico.
 function podeGerenciarRegistro(objeto) {
     return usuarioLogado?.tipo === "admin" || (
         usuarioLogado?.tipo === "cliente" &&
@@ -335,6 +355,7 @@ function podeGerenciarRegistro(objeto) {
     );
 }
 
+// Define quem pode enviar proposta para assumir este trabalho.
 function podeAceitarTrabalho(objeto) {
     if (!usuarioLogado) {
         return false;
@@ -348,6 +369,7 @@ function podeAceitarTrabalho(objeto) {
     return true;
 }
 
+// Renderiza o botao de proposta apenas para prestadores/admins elegiveis.
 function renderizarBotaoAceitarTrabalho(objeto) {
     if (!podeAceitarTrabalho(objeto)) {
         return "";
@@ -361,6 +383,7 @@ function renderizarBotaoAceitarTrabalho(objeto) {
     `;
 }
 
+// Envia ao backend a proposta do prestador para trabalhar neste chamado.
 async function enviarPropostaTrabalho(idServico, nomeChamado) {
     const confirmar = confirm(`Deseja informar ao contratante que voce aceita trabalhar em "${nomeChamado}"?`);
     if (!confirmar) {
@@ -389,6 +412,7 @@ async function enviarPropostaTrabalho(idServico, nomeChamado) {
     }
 }
 
+// Escapa caracteres especiais antes de injetar texto em HTML.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor;

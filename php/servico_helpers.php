@@ -1,9 +1,14 @@
 <?php
 
+// Constantes compartilhadas para diferenciar anuncios de prestadores e chamados de clientes.
 const ORIGEM_PRESTADOR = 'prestador';
 const ORIGEM_CLIENTE = 'cliente';
 const STATUS_SERVICO_ATIVO = 'ativo';
 
+/**
+ * Monta o SELECT base de servicos com os joins mais usados nas listagens.
+ * Os endpoints complementam esta query com WHERE/ORDER BY conforme o contexto.
+ */
 function sqlSelectServicoComUsuario(): string
 {
     return "
@@ -34,6 +39,10 @@ function sqlSelectServicoComUsuario(): string
     ";
 }
 
+/**
+ * Enriquece as linhas retornadas do banco com dados prontos para o frontend:
+ * habilidades em JSON e foto sempre em formato de lista.
+ */
 function enriquecerLinhasServico(mysqli $conexao, array &$linhas): void
 {
     foreach ($linhas as &$linha) {
@@ -46,6 +55,9 @@ function enriquecerLinhasServico(mysqli $conexao, array &$linhas): void
     unset($linha);
 }
 
+/**
+ * Garante que o campo foto saia sempre como JSON, mesmo quando o banco guarda so uma string.
+ */
 function fotoServicoParaJson(?string $foto): ?string
 {
     if ($foto === null || $foto === '') {
@@ -59,6 +71,9 @@ function fotoServicoParaJson(?string $foto): ?string
     return json_encode([$foto], JSON_UNESCAPED_SLASHES);
 }
 
+/**
+ * Extrai a primeira imagem de um campo que pode estar salvo como string ou lista JSON.
+ */
 function extrairPrimeiraFoto(?string $foto): ?string
 {
     if ($foto === null || $foto === '') {
@@ -77,6 +92,9 @@ function extrairPrimeiraFoto(?string $foto): ?string
     return $foto;
 }
 
+/**
+ * Busca todas as habilidades ligadas a um servico.
+ */
 function listarNomesHabilidadesServico(mysqli $conexao, int $idServico): array
 {
     $sql = "
@@ -104,6 +122,9 @@ function listarNomesHabilidadesServico(mysqli $conexao, int $idServico): array
     return $nomes;
 }
 
+/**
+ * Reaproveita uma habilidade existente ou cria uma nova quando ainda nao existe.
+ */
 function obterOuCriarHabilidadeId(mysqli $conexao, string $nome): ?int
 {
     $nome = trim($nome);
@@ -135,6 +156,9 @@ function obterOuCriarHabilidadeId(mysqli $conexao, string $nome): ?int
     return $id;
 }
 
+/**
+ * Substitui a lista de habilidades de um servico pela lista recebida no formulario.
+ */
 function sincronizarHabilidadesServico(mysqli $conexao, int $idServico, array $nomesHabilidades): void
 {
     $stmtDelete = $conexao->prepare('DELETE FROM servico_habilidade WHERE id_servico = ?');
@@ -159,6 +183,9 @@ function sincronizarHabilidadesServico(mysqli $conexao, int $idServico, array $n
     $stmtInsert->close();
 }
 
+/**
+ * Cria ou atualiza o perfil profissional do prestador com os dados mais recentes do servico.
+ */
 function upsertPerfilPrestador(
     mysqli $conexao,
     int $idUsuario,
@@ -180,6 +207,10 @@ function upsertPerfilPrestador(
     $stmt->close();
 }
 
+/**
+ * Salva as fotos enviadas no upload, validando tamanho, extensao e se o arquivo e realmente uma imagem.
+ * O retorno e uma lista de caminhos web que podem ser gravados no banco.
+ */
 function salvarFotosServico(string $prefixoOrigem): array
 {
     if (!isset($_FILES['fotos'])) {
@@ -228,6 +259,10 @@ function salvarFotosServico(string $prefixoOrigem): array
     return $fotos;
 }
 
+/**
+ * Limpa a lista de habilidades recebida do frontend:
+ * converte para array, remove vazios e evita duplicados.
+ */
 function normalizarHabilidades($habilidades): array
 {
     if (!is_array($habilidades)) {

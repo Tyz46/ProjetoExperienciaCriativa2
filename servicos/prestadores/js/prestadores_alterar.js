@@ -1,3 +1,4 @@
+// Tela de alteracao de servico publicado por prestador.
 const HABILIDADES_POR_PROFISSAO = {
     Eletricista: [
         "Instalacao eletrica",
@@ -65,6 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     buscarDados(id);
 });
 
+// Atualiza a lista de habilidades sempre que a profissao muda.
 function configurarHabilidades() {
     const profissao = document.getElementById("profissao");
     profissao.addEventListener("change", () => {
@@ -73,6 +75,7 @@ function configurarHabilidades() {
     renderizarHabilidades("");
 }
 
+// Busca o servico atual e preenche o formulario de edicao.
 async function buscarDados(id) {
     const retorno = await fetch("../php/prestadores_get.php?id=" + id);
     const resposta = await retorno.json();
@@ -101,6 +104,7 @@ async function buscarDados(id) {
     }
 }
 
+// Permite edicao apenas para o dono do servico ou para admin.
 function podeGerenciarRegistro(registro) {
     return usuarioLogado?.tipo === "admin" || Number(registro.id_usuario) === Number(usuarioLogado?.id);
 }
@@ -111,6 +115,7 @@ document.getElementById("voltar").addEventListener("click", () => {
     window.location.href = "../html/prestador.html";
 });
 
+// Coleta os novos valores e envia a atualizacao para o backend.
 async function alterar() {
     if (!podeAlterar) {
         alert("Apenas prestadores podem alterar servicos nesta aba.");
@@ -157,6 +162,7 @@ async function alterar() {
     }
 }
 
+// Renderiza os checkboxes de habilidades sugeridas para a profissao escolhida.
 function renderizarHabilidades(profissao, selecionadas = []) {
     const container = document.getElementById("habilidadesGrupo");
     const habilidades = HABILIDADES_POR_PROFISSAO[profissao] || [];
@@ -179,12 +185,14 @@ function renderizarHabilidades(profissao, selecionadas = []) {
     `).join("");
 }
 
+// Le apenas as habilidades marcadas pela pessoa usuaria.
 function obterHabilidadesSelecionadas() {
     return Array.from(document.querySelectorAll('input[name="habilidades"]:checked'))
         .map((campo) => campo.value.trim())
         .filter(Boolean);
 }
 
+// Faz o parse defensivo do JSON de habilidades vindo do backend.
 function parsearHabilidades(valor) {
     if (!valor) {
         return [];
@@ -198,6 +206,7 @@ function parsearHabilidades(valor) {
     }
 }
 
+// Escapa caracteres especiais antes de inserir texto em HTML.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor;

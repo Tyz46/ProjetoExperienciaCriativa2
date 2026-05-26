@@ -3,6 +3,7 @@ session_start();
 require_once dirname(__DIR__, 3) . '/php/conexao.php';
 require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
 
+// Endpoint de alteracao de chamado de cliente.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!usuarioTemTipo(['cliente', 'admin'])) {
@@ -22,11 +23,13 @@ $localidade = trim($_POST['localidade'] ?? '');
 $idUsuario = idUsuarioLogado();
 $admin = ehAdmin();
 
+// Valida campos e a existencia do ID antes de alterar.
 if ($id <= 0) {
     $retorno['mensagem'] = 'Nao foi possivel alterar o registro sem ID.';
 } elseif ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $localidade === '') {
     $retorno['mensagem'] = 'Preencha todos os campos obrigatorios.';
 } else {
+    // Primeiro confirma se o usuario tem permissao para alterar este chamado.
     $sqlPermissao = "SELECT id FROM servico WHERE id = ? AND origem = 'cliente'";
     if (!$admin) {
         $sqlPermissao .= ' AND id_prestador = ?';

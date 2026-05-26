@@ -1,3 +1,4 @@
+// Controla a vitrine de servicos de prestadores: filtros, detalhes, solicitacoes e gerenciamento.
 let usuarioLogado = null;
 let servicosPrestadores = [];
 
@@ -5,6 +6,7 @@ document.addEventListener("DOMContentLoaded", () => {
     iniciarPagina();
 });
 
+// Valida a sessao, carrega permissao da pessoa logada e inicializa a tela.
 async function iniciarPagina() {
     const sessao = await valida_sessao();
     usuarioLogado = sessao.data;
@@ -27,6 +29,7 @@ document.getElementById("logoff").addEventListener("click", () => {
     logoff();
 });
 
+// Liga os campos de filtro para re-renderizar a lista em tempo real.
 function configurarFiltros() {
     const categoria = document.getElementById("filtroCategoria");
     const localidade = document.getElementById("filtroLocalidade");
@@ -92,6 +95,7 @@ function configurarFiltros() {
     }
 }
 
+// Encerra a sessao atual e volta para o login.
 async function logoff() {
     const retorno = await fetch("../../../home/php/usuario_logoff.php");
     const resposta = await retorno.json();
@@ -103,6 +107,7 @@ async function logoff() {
     }
 }
 
+// Busca no backend a lista de servicos de prestadores disponiveis.
 async function carregarDados() {
     const lista = document.getElementById("lista");
 
@@ -129,6 +134,7 @@ async function carregarDados() {
     }
 }
 
+// Renderiza a grade principal de cards com base nos filtros atuais.
 function renderizarLista() {
     const lista = document.getElementById("lista");
     const registros = obterServicosFiltrados();
@@ -143,6 +149,7 @@ function renderizarLista() {
     atualizarContadorOrcamentos(registros.length);
 }
 
+// Aplica todos os filtros ativos sobre os servicos carregados em memoria.
 function obterServicosFiltrados() {
     const categoria = (document.getElementById("filtroCategoria") || {}).value || "";
     const localidade = (document.getElementById("filtroLocalidade") || {}).value || "";
@@ -168,10 +175,12 @@ function obterServicosFiltrados() {
     });
 }
 
+// Mensagem exibida quando nenhum servico atende aos filtros selecionados.
 function gerarMensagemVazio() {
     return "Nenhum servico encontrado para o filtro escolhido.";
 }
 
+// Atualiza os textos de resumo da tela com a quantidade de resultados.
 function atualizarContadorOrcamentos(total) {
     const resumo = document.getElementById("resultadoResumo");
     const contador = document.getElementById("contadorOrcamentos");
@@ -180,6 +189,7 @@ function atualizarContadorOrcamentos(total) {
     if (contador) contador.textContent = `${total} opcoes disponiveis para comparacao.`;
 }
 
+// Exclui um servico do proprio usuario quando a permissao permite.
 async function excluir(id) {
     if (!podeCriar()) {
         alert("Apenas prestadores podem excluir servicos nesta aba.");
@@ -202,6 +212,7 @@ async function excluir(id) {
     }
 }
 
+// Monta o card visual de um servico de prestador.
 function renderizarCardServico(objeto) {
 
     return `
@@ -250,6 +261,7 @@ function renderizarCardServico(objeto) {
     `;
 }
 
+// Renderiza so a foto principal do servico.
 function renderizarFoto(objeto) {
     const foto = obterPrimeiraFoto(objeto.foto);
 
@@ -260,6 +272,7 @@ function renderizarFoto(objeto) {
     return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto do servico">`;
 }
 
+// Aceita string simples ou JSON com varias fotos e devolve a primeira.
 function obterPrimeiraFoto(valor) {
     if (!valor) {
         return "";
@@ -273,6 +286,7 @@ function obterPrimeiraFoto(valor) {
     }
 }
 
+// Mostra botoes de alterar/excluir apenas para quem pode gerenciar o registro.
 function renderizarAcoesGerenciamento(objeto) {
     if (!podeGerenciarRegistro(objeto)) {
         return "";
@@ -286,30 +300,37 @@ function renderizarAcoesGerenciamento(objeto) {
     `;
 }
 
+// Mantido como stub porque o painel de comparacao foi removido da interface.
 function alternarComparacao(id) {
     // comparação removida
 }
 
+// Mantido como stub porque o painel de comparacao foi removido da interface.
 function renderizarPainelComparacao() {
     // painel comparativo removido
 }
 
+// Mantido como stub para nao quebrar chamadas antigas.
 function renderizarLinhaComparacao(rotulo, colunas) {
     return ``;
 }
 
+// Mantido como stub para nao quebrar chamadas antigas.
 function renderizarIndicadorCusto(servico, selecionados) {
     return '';
 }
 
+// Mantido como stub para nao quebrar chamadas antigas.
 function obterServicosSelecionados() {
     return [];
 }
 
+// Mantido como stub porque o recurso antigo foi removido.
 function limparComparacao() {
     // removido
 }
 
+// Preenche o modal de detalhes com os dados do servico selecionado.
 function abrirDetalheOrcamento(id) {
     const servico = servicosPrestadores.find((item) => Number(item.id) === Number(id));
     if (!servico) {
@@ -332,6 +353,7 @@ function abrirDetalheOrcamento(id) {
     document.getElementById("modalDetalheDescricao").textContent = servico.descricao || "Sem descricao cadastrada.";
 }
 
+// Template de estado vazio da listagem.
 function renderizarVazio(mensagem = "Nenhum servico de prestador foi encontrado no momento.") {
     return `
         <div class="col-12">
@@ -344,6 +366,7 @@ function renderizarVazio(mensagem = "Nenhum servico de prestador foi encontrado 
     `;
 }
 
+// Converte a lista de habilidades em chips visuais.
 function renderizarHabilidades(valor) {
     const habilidades = parsearHabilidades(valor);
 
@@ -354,6 +377,7 @@ function renderizarHabilidades(valor) {
     return habilidades.map((habilidade) => `<span class="skill-chip">${escaparHtml(habilidade)}</span>`).join("");
 }
 
+// Faz o parse defensivo do JSON de habilidades vindo do backend.
 function parsearHabilidades(valor) {
     if (!valor) {
         return [];
@@ -367,6 +391,7 @@ function parsearHabilidades(valor) {
     }
 }
 
+// Encurta descricoes longas para deixar o card mais legivel.
 function resumirTexto(texto, limite = 120) {
     if (!texto || texto.length <= limite) {
         return texto || "";
@@ -375,6 +400,7 @@ function resumirTexto(texto, limite = 120) {
     return texto.slice(0, limite).trim() + "...";
 }
 
+// Formata valores monetarios no padrao brasileiro.
 function formatarMoeda(valor) {
     const numero = Number(valor);
 
@@ -388,10 +414,12 @@ function formatarMoeda(valor) {
     }).format(numero);
 }
 
+// Garante um fallback quando a categoria nao vier preenchida.
 function formatarCategoria(categoria) {
     return categoria || "Sem categoria";
 }
 
+// Esconde o botao de criar quando o tipo de usuario nao pode publicar nesta aba.
 function aplicarPermissoes() {
     const botaoNovo = document.getElementById("novo");
 
@@ -400,10 +428,12 @@ function aplicarPermissoes() {
     }
 }
 
+// Define quem pode criar servicos na aba de prestadores.
 function podeCriar() {
     return usuarioLogado?.tipo === "prestador" || usuarioLogado?.tipo === "admin";
 }
 
+// Define quem pode alterar/excluir um servico especifico.
 function podeGerenciarRegistro(objeto) {
     return usuarioLogado?.tipo === "admin" || (
         usuarioLogado?.tipo === "prestador" &&
@@ -411,6 +441,7 @@ function podeGerenciarRegistro(objeto) {
     );
 }
 
+// Define quem pode enviar solicitacao para contratar este servico.
 function podeSolicitarServico(objeto) {
     if (!usuarioLogado) {
         return false;
@@ -424,6 +455,7 @@ function podeSolicitarServico(objeto) {
     return true;
 }
 
+// Renderiza o botao de solicitacao apenas para clientes/admins elegiveis.
 function renderizarBotaoSolicitacao(objeto) {
     if (!podeSolicitarServico(objeto)) {
         return "";
@@ -439,6 +471,7 @@ function renderizarBotaoSolicitacao(objeto) {
 
 let servicoSolicitacaoAtual = null;
 
+// Prepara o modal de solicitacao para o servico escolhido.
 function abrirModalSolicitacao(idServico, nomeServico) {
     servicoSolicitacaoAtual = Number(idServico);
     document.getElementById("solicitacao_id_servico").value = String(idServico);
@@ -453,6 +486,7 @@ function abrirModalSolicitacao(idServico, nomeServico) {
     modal.show();
 }
 
+// Envia ao backend a solicitacao que o cliente escreveu para este servico.
 async function enviarSolicitacaoServico() {
     const formData = new FormData();
     formData.append("id_servico", document.getElementById("solicitacao_id_servico").value);
@@ -482,6 +516,7 @@ async function enviarSolicitacaoServico() {
     }
 }
 
+// Escapa caracteres especiais antes de injetar texto em HTML.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor;

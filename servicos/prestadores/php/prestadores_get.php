@@ -3,6 +3,7 @@ session_start();
 require_once dirname(__DIR__, 3) . '/php/conexao.php';
 require_once dirname(__DIR__, 3) . '/php/servico_helpers.php';
 
+// Endpoint de consulta dos servicos publicados por prestadores.
 $retorno = [
     'status' => '',
     'mensagem' => '',
@@ -10,6 +11,7 @@ $retorno = [
 ];
 
 $filtrarMeus = isset($_GET['meus']) && $_GET['meus'] === '1';
+// A query base com joins fica centralizada no helper para ser reaproveitada.
 $baseSql = sqlSelectServicoComUsuario();
 
 if ($filtrarMeus && !isset($_SESSION['usuario']['id'])) {
@@ -25,16 +27,19 @@ if ($filtrarMeus && !isset($_SESSION['usuario']['id'])) {
 }
 
 if (isset($_GET['id'])) {
+    // Busca um unico servico para preencher a tela de detalhes/edicao.
     $id = (int) $_GET['id'];
     $sql = $baseSql . " WHERE s.id = ? AND s.origem = 'prestador'";
     $stmt = $conexao->prepare($sql);
     $stmt->bind_param('i', $id);
 } elseif ($filtrarMeus) {
+    // Lista somente os servicos do usuario autenticado.
     $idUsuario = (int) $_SESSION['usuario']['id'];
     $sql = $baseSql . " WHERE s.origem = 'prestador' AND s.id_prestador = ? ORDER BY s.id DESC";
     $stmt = $conexao->prepare($sql);
     $stmt->bind_param('i', $idUsuario);
 } else {
+    // Lista publica: so servicos ativos e ordenados priorizando quem informa valor.
     $sql = $baseSql . "
         WHERE s.origem = 'prestador' AND s.status = 'ativo'
         ORDER BY CASE WHEN s.valor <= 0 THEN 1 ELSE 0 END, s.valor ASC, s.id DESC
@@ -50,6 +55,7 @@ if ($resultado->num_rows > 0) {
     while ($linha = $resultado->fetch_assoc()) {
         $tabela[] = $linha;
     }
+    // Completa o retorno com habilidades e fotos normalizadas para o frontend.
     enriquecerLinhasServico($conexao, $tabela);
 
     $retorno = [

@@ -2,6 +2,7 @@
 session_start();
 require_once dirname(__DIR__, 2) . '/php/conexao.php';
 
+// Endpoint para remover um periodo de indisponibilidade do prestador.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {
@@ -31,6 +32,7 @@ if ($idDisponibilidade <= 0) {
 }
 
 // Verificar se a disponibilidade pertence ao prestador
+// Antes de apagar, confirma se o periodo pertence mesmo ao usuario logado.
 $sql_verificar = 'SELECT id FROM prestador_disponibilidade WHERE id = ? AND id_prestador = ?';
 $stmt_verificar = $conexao->prepare($sql_verificar);
 $stmt_verificar->bind_param('ii', $idDisponibilidade, $idPrestador);
@@ -48,6 +50,7 @@ if ($resultado->num_rows === 0) {
 $stmt_verificar->close();
 
 // Excluir disponibilidade
+// Com a posse confirmada, a exclusao e executada.
 $sql = 'DELETE FROM prestador_disponibilidade WHERE id = ? AND id_prestador = ?';
 $stmt = $conexao->prepare($sql);
 

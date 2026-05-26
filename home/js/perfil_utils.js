@@ -1,3 +1,4 @@
+// Monta a URL publica do perfil a partir do ID do usuario.
 function urlPerfilUsuario(idUsuario) {
     const id = Number(idUsuario);
     if (!id) {
@@ -8,12 +9,14 @@ function urlPerfilUsuario(idUsuario) {
     return `${rootPath}/home/html/perfil.html?id=${id}`;
 }
 
+// Escapa texto antes de inserir em HTML gerado por template string.
 function escaparHtmlPerfil(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor ?? "";
     return elemento.innerHTML;
 }
 
+// Gera o botao/link reutilizavel que aponta para a pagina de perfil.
 function linkPerfilUsuario(idUsuario, nomeExibicao, textoBotao) {
     const id = Number(idUsuario);
     const nome = nomeExibicao || "Usuario";
@@ -30,6 +33,7 @@ function linkPerfilUsuario(idUsuario, nomeExibicao, textoBotao) {
     `;
 }
 
+// Aplica o link de perfil ja renderizado em um elemento existente da tela.
 function definirLinkPerfilNoElemento(elementoId, idUsuario, nomeExibicao, textoBotao) {
     const elemento = document.getElementById(elementoId);
     if (!elemento) {

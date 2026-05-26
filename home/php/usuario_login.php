@@ -4,14 +4,17 @@ require_once dirname(__DIR__, 2) . '/php/conexao.php';
 require_once dirname(__DIR__, 2) . '/php/auth_senha.php';
 require_once dirname(__DIR__, 2) . '/php/usuario_helpers.php';
 
+// Endpoint de login: valida credenciais, abre a sessao e devolve o usuario limpo.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
+// Aceita tanto "usuario" quanto "username" para manter compatibilidade entre formularios.
 $username = trim($_POST['usuario'] ?? $_POST['username'] ?? '');
 $senha = $_POST['senha'] ?? '';
 
 if ($username === '' || $senha === '') {
     $retorno['mensagem'] = 'Preencha usuário e senha.';
 } else {
+    // Busca o usuario pelo nome de login para depois comparar a senha.
     $sql = 'SELECT * FROM usuario WHERE username = ?';
     $stmt = $conexao->prepare($sql);
 
@@ -25,6 +28,7 @@ if ($username === '' || $senha === '') {
         if ($resultado->num_rows > 0) {
             $registro = $resultado->fetch_assoc();
 
+            // Quando a senha bate, a sessao passa a guardar o registro original completo.
             if (verificar_senha($senha, $registro['senha_hash'])) {
                 $_SESSION['usuario'] = $registro;
 

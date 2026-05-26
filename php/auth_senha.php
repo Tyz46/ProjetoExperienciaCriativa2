@@ -1,12 +1,16 @@
 <?php
 
+/**
+ * Gera o hash seguro da senha antes de salvar no banco.
+ */
 function hash_senha(string $senha): string
 {
     return password_hash($senha, PASSWORD_DEFAULT);
 }
 
 /**
- * Aceita senha em hash (bcrypt/argon) ou texto legado em bancos antigos.
+ * Confere a senha informada no login.
+ * Aceita hash moderno (bcrypt/argon) e tambem texto puro legado de bases antigas.
  */
 function verificar_senha(string $senhaInformada, string $senhaArmazenada): bool
 {

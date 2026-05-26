@@ -1,5 +1,6 @@
 // Primeira etapa - Receber o valor por GET e armazenar no input hidden id
 // Segunda etapa - fazer um fetch no projeto_final_get.php e preencher os campos
+// Tela administrativa/legada de edicao de usuario.
 document.addEventListener("DOMContentLoaded", () => {
     // Pega a URL e grava na variavel
     var url = new URLSearchParams(window.location.search);
@@ -9,6 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     buscarDados(id);
 });
 
+// Carrega o usuario atual e preenche o formulario de edicao.
 async function buscarDados(id){
     const retorno = await fetch("../php/usuario_get.php?id="+id);
     const resposta = await retorno.json();
@@ -37,6 +39,7 @@ document.getElementById('voltar').addEventListener('click', () => {
     window.location.href = '../html/registros.html';
 });
 
+// Envia os novos dados do usuario para o endpoint de alteracao.
 async function alterar(){
     var nome    = document.getElementById("nome").value;
     var usuario = document.getElementById("usuario").value;

@@ -2,6 +2,8 @@
 session_start();
 require_once __DIR__ . '/usuario_helpers.php';
 
+// Endpoint simples usado pelas telas para descobrir se existe sessao ativa
+// e, se existir, devolver um usuario ja sanitizado.
 $retorno = ['status' => '', 'mensagem' => '', 'data' => []];
 
 if (isset($_SESSION['usuario'])) {

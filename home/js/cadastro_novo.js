@@ -1,8 +1,10 @@
+// Tela de cadastro publico de usuarios.
 document.getElementById("enviar").addEventListener("click", novo);
 document.getElementById("voltar").addEventListener("click", () => {
     window.location.href = "../html/login.html";
 });
 
+// Coleta os dados do formulario e envia para o endpoint de criacao de conta.
 async function novo() {
     const nome = document.getElementById("nome").value.trim();
     const email = document.getElementById("email").value.trim();
@@ -17,6 +19,7 @@ async function novo() {
         return;
     }
 
+    // Validacao simples para evitar envio de email claramente invalido.
     if (!email.includes("@")) {
         console.log("Erro na validação do E-Mail");
         erro.textContent = "Erro na validação do E-Mail";

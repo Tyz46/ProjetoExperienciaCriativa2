@@ -4,6 +4,7 @@ require_once dirname(__DIR__, 3) . '/php/conexao.php';
 require_once dirname(__DIR__, 3) . '/php/usuario_helpers.php';
 require_once dirname(__DIR__, 3) . '/php/servico_helpers.php';
 
+// Endpoint de cadastro de novo servico oferecido por um prestador.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!usuarioTemTipo(['prestador', 'admin'])) {
@@ -24,6 +25,7 @@ $valor = trim($_POST['valor'] ?? '');
 $localidade = trim($_POST['localidade'] ?? '');
 $idUsuario = idUsuarioLogado();
 
+// Valida o minimo necessario para publicar um servico.
 if (
     $nome === '' ||
     $descricao === '' ||
@@ -35,6 +37,7 @@ if (
 ) {
     $retorno['mensagem'] = 'Preencha todos os campos obrigatorios.';
 } else {
+    // Salva as fotos primeiro para depois gravar o caminho no banco.
     $fotos = salvarFotosServico(ORIGEM_PRESTADOR);
     $foto = count($fotos) > 0 ? $fotos[0] : null;
     $status = STATUS_SERVICO_ATIVO;
@@ -63,6 +66,7 @@ if (
 
         if ($stmt->execute() && $stmt->affected_rows > 0) {
             $idServico = (int) $conexao->insert_id;
+            // Mantem o perfil do prestador sincronizado com a especialidade anunciada.
             upsertPerfilPrestador($conexao, $idUsuario, $profissao, $descricaoEspecialidades, $localidade);
             sincronizarHabilidadesServico($conexao, $idServico, $habilidades);
 

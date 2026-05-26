@@ -2,6 +2,7 @@
 session_start();
 require_once dirname(__DIR__, 2) . '/php/conexao.php';
 
+// Endpoint que lista os periodos ocupados do prestador dono do perfil.
 $retorno = ['status' => 'nok', 'mensagem' => '', 'data' => []];
 
 if (!isset($_SESSION['usuario']['id'])) {
@@ -22,6 +23,7 @@ if ($idPrestador <= 0) {
 }
 
 // Verificar se é prestador e se é seu próprio perfil
+// A agenda so faz sentido para usuarios do tipo prestador.
 $sql_verificar = 'SELECT tipo FROM usuario WHERE id = ?';
 $stmt_verificar = $conexao->prepare($sql_verificar);
 $stmt_verificar->bind_param('i', $idPrestador);
@@ -38,6 +40,7 @@ if (!$usuario || $usuario['tipo'] !== 'prestador') {
 }
 
 // Apenas o próprio prestador pode ver suas disponibilidades
+// A agenda nao e publica: so o proprio dono pode consultar.
 $ehProprio = ($idVisitante === $idPrestador);
 
 if (!$ehProprio) {
@@ -48,6 +51,7 @@ if (!$ehProprio) {
 }
 
 // Recuperar disponibilidades
+// Busca os periodos cadastrados em ordem decrescente.
 $sql = 'SELECT id, data_inicio, hora_inicio, data_fim, hora_fim, status, descricao, created_at 
         FROM prestador_disponibilidade 
         WHERE id_prestador = ? 

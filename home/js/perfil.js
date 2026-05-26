@@ -1,3 +1,4 @@
+// Controla a pagina de perfil: dados publicos, acordos, notificacoes e avaliacoes.
 let dadosPerfil = null;
 let notificacoesPerfil = [];
 let modalAvaliarInstancia = null;
@@ -8,12 +9,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     await carregarPerfil();
 });
 
+// Descobre se a tela deve abrir o proprio perfil ou o perfil de outro usuario via query string.
 function obterIdPerfilDaUrl() {
     const params = new URLSearchParams(window.location.search);
     const id = Number(params.get("id"));
     return id > 0 ? id : null;
 }
 
+// Busca no backend todos os dados necessarios para montar a tela de perfil.
 async function carregarPerfil() {
     const idUrl = obterIdPerfilDaUrl();
     const url = idUrl
@@ -42,6 +45,7 @@ async function carregarPerfil() {
     }
 }
 
+// Troca o estado da pagina para um feedback visual de erro de carregamento.
 function mostrarErroPerfil(mensagem) {
     document.getElementById("perfil_estado_carregando").classList.remove("d-none");
     document.getElementById("perfil_conteudo").classList.add("d-none");
@@ -55,6 +59,7 @@ function mostrarErroPerfil(mensagem) {
     `;
 }
 
+// Orquestra a montagem da pagina preenchendo cada secao do perfil.
 function renderizarPerfil(dados) {
     const usuario = dados.usuario;
     const perfilPrestador = dados.perfil_prestador;
@@ -87,6 +92,7 @@ function renderizarPerfil(dados) {
     }
 }
 
+// Mostra nota media e quantidade de avaliacoes recebidas.
 function renderizarResumoAvaliacoes(resumo) {
     const elemento = document.getElementById("perfil_resumo_avaliacoes");
     const media = Number(resumo?.media || 0);
@@ -104,6 +110,7 @@ function renderizarResumoAvaliacoes(resumo) {
     `;
 }
 
+// Preenche os campos principais e decide o que fica publico ou privado.
 function renderizarCamposInformacao(usuario, perfilPrestador, ehProprio) {
     document.getElementById("perfil_nome").value = usuario.nome ?? "";
     document.getElementById("perfil_usuario").value = usuario.usuario ?? usuario.username ?? "";
@@ -143,6 +150,7 @@ function renderizarCamposInformacao(usuario, perfilPrestador, ehProprio) {
     }
 }
 
+// Renderiza o historico de servicos/chamados publicados por este usuario.
 function renderizarServicos(servicos, ehProprio) {
     const lista = document.getElementById("lista_servicos_perfil");
     const prestador = servicos?.prestador ?? [];
@@ -163,6 +171,7 @@ function renderizarServicos(servicos, ehProprio) {
         .join("");
 }
 
+// Renderiza a aba de acordos, visivel apenas no proprio perfil.
 function renderizarServicosAcordados(registros, ehProprio, nomeUsuario) {
     const lista = document.getElementById("lista_servicos_acordados_perfil");
     const descricao = document.getElementById("perfil_acordos_descricao");
@@ -191,6 +200,7 @@ function renderizarServicosAcordados(registros, ehProprio, nomeUsuario) {
         .join("");
 }
 
+// Monta o card visual de um servico que ja foi combinado entre as partes.
 function renderizarCardServicoAcordado(registro) {
     const linkOutraParte = linkPerfilUsuario(
         registro.id_outra_parte,
@@ -248,6 +258,7 @@ function renderizarCardServicoAcordado(registro) {
     `;
 }
 
+// Monta o card de servico/chamado publicado no historico do perfil.
 function renderizarCardServicoPerfil(objeto, ehProprio) {
     const origem = objeto.origem;
     const ehPrestador = origem === "prestador";
@@ -289,6 +300,7 @@ function renderizarCardServicoPerfil(objeto, ehProprio) {
     `;
 }
 
+// Exclui um servico ou chamado diretamente pela tela de perfil.
 async function excluirServicoPerfil(id, origem) {
     const confirmar = confirm(origem === "prestador"
         ? "Deseja realmente excluir este servico?"
@@ -313,6 +325,7 @@ async function excluirServicoPerfil(id, origem) {
     }
 }
 
+// Renderiza a lista de comentarios e notas recebidos pelo usuario.
 function renderizarAvaliacoes(avaliacoes, nomeUsuario) {
     const lista = document.getElementById("lista_avaliacoes_perfil");
     const registros = Array.isArray(avaliacoes) ? avaliacoes : [];
@@ -329,6 +342,7 @@ function renderizarAvaliacoes(avaliacoes, nomeUsuario) {
     lista.innerHTML = registros.map(renderizarItemAvaliacao).join("");
 }
 
+// Se a URL vier com hash, abre a aba correspondente automaticamente.
 function abrirAbaNotificacoesSeHash() {
     if (window.location.hash !== "#notificacoes") {
         if (window.location.hash !== "#acordos") {
@@ -346,6 +360,7 @@ function abrirAbaNotificacoesSeHash() {
     }
 }
 
+// Mostra ou oculta a aba de acordos dependendo de quem esta vendo o perfil.
 function configurarAbaAcordos(ehProprio) {
     const tabItem = document.getElementById("tab_item_acordos");
     const painel = document.getElementById("painel-acordos");
@@ -358,6 +373,7 @@ function configurarAbaAcordos(ehProprio) {
     painel.classList.toggle("d-none", !ehProprio);
 }
 
+// Mostra ou oculta a aba de notificacoes dependendo de quem esta vendo o perfil.
 function configurarAbaNotificacoes(ehProprio) {
     const tabItem = document.getElementById("tab_item_notificacoes");
     if (!ehProprio) {
@@ -367,6 +383,7 @@ function configurarAbaNotificacoes(ehProprio) {
     }
 }
 
+// Inicializa o modal usado para registrar a avaliacao final do servico.
 function configurarModalAvaliacao() {
     const modalEl = document.getElementById("modalAvaliar");
     if (!modalEl) {
@@ -376,6 +393,7 @@ function configurarModalAvaliacao() {
     document.getElementById("btn_enviar_avaliacao").addEventListener("click", enviarAvaliacao);
 }
 
+// Busca a central de mensagens do usuario logado.
 async function carregarNotificacoes() {
     const lista = document.getElementById("lista_notificacoes_perfil");
     lista.innerHTML = '<p class="text-secondary">Carregando mensagens...</p>';
@@ -399,6 +417,7 @@ async function carregarNotificacoes() {
     }
 }
 
+// Atualiza o contador visual de notificacoes pendentes.
 function atualizarBadgeNotificacoes(pendentes) {
     const badge = document.getElementById("badge_notificacoes");
     if (!badge) {
@@ -412,6 +431,7 @@ function atualizarBadgeNotificacoes(pendentes) {
     }
 }
 
+// Desenha a lista de notificacoes recebidas.
 function renderizarNotificacoes(registros) {
     const lista = document.getElementById("lista_notificacoes_perfil");
 
@@ -423,6 +443,7 @@ function renderizarNotificacoes(registros) {
     lista.innerHTML = registros.map(renderizarItemNotificacao).join("");
 }
 
+// Monta um item individual da central de notificacoes.
 function renderizarItemNotificacao(notif) {
     const pendente = Number(notif.requer_acao) === 1 && Number(notif.respondida) === 0;
     const acoes = Array.isArray(notif.acoes) ? notif.acoes : [];
@@ -449,6 +470,7 @@ function renderizarItemNotificacao(notif) {
     `;
 }
 
+// Decide quais botoes aparecem em cada notificacao com base nas acoes liberadas pelo backend.
 function renderizarBotoesNotificacao(notif, acoes) {
     const id = Number(notif.id);
     const idNeg = Number(notif.id_negociacao);
@@ -474,6 +496,7 @@ function renderizarBotoesNotificacao(notif, acoes) {
     return `<div class="notification-actions">${botoes.join("")}</div>`;
 }
 
+// Envia ao backend a resposta dada a uma notificacao pendente.
 async function responderNotificacao(idNotificacao, resposta) {
     const confirmar = resposta === "recusar"
         ? confirm("Deseja recusar esta solicitacao?")
@@ -508,6 +531,7 @@ async function responderNotificacao(idNotificacao, resposta) {
     }
 }
 
+// Prepara o modal com o contexto de quem sera avaliado.
 function abrirModalAvaliacao(idNegociacao, idAvaliado, nomeAvaliado) {
     document.getElementById("avaliar_id_negociacao").value = String(idNegociacao);
     document.getElementById("avaliar_id_avaliado").value = String(idAvaliado);
@@ -521,6 +545,7 @@ function abrirModalAvaliacao(idNegociacao, idAvaliado, nomeAvaliado) {
     }
 }
 
+// Coleta nota/comentario e envia a avaliacao para o backend.
 async function enviarAvaliacao() {
     const formData = new FormData();
     formData.append("id_negociacao", document.getElementById("avaliar_id_negociacao").value);
@@ -552,6 +577,7 @@ async function enviarAvaliacao() {
     }
 }
 
+// Monta o card de uma avaliacao recebida no perfil.
 function renderizarItemAvaliacao(avaliacao) {
     const nota = Number(avaliacao.nota);
     const rotuloServico = avaliacao.servico_origem === "prestador" ? "Servico" : "Chamado";
@@ -580,6 +606,7 @@ function renderizarItemAvaliacao(avaliacao) {
     `;
 }
 
+// Template reutilizavel de estado vazio para secoes do perfil.
 function renderizarVazioSecao(mensagem) {
     return `
         <div class="empty-state py-4">
@@ -589,6 +616,7 @@ function renderizarVazioSecao(mensagem) {
     `;
 }
 
+// Exibe apenas a primeira foto do servico, quando existir.
 function renderizarFotoServico(objeto) {
     const foto = obterPrimeiraFoto(objeto.foto);
     if (!foto) {
@@ -597,6 +625,7 @@ function renderizarFotoServico(objeto) {
     return `<img src="${escaparHtml(foto)}" class="service-photo" alt="Foto">`;
 }
 
+// Aceita string simples ou JSON com varias fotos e devolve a primeira.
 function obterPrimeiraFoto(valor) {
     if (!valor) {
         return "";
@@ -609,6 +638,7 @@ function obterPrimeiraFoto(valor) {
     }
 }
 
+// Converte a lista de habilidades em chips visuais.
 function renderizarHabilidades(valor) {
     const habilidades = parsearHabilidades(valor);
     if (habilidades.length === 0) {
@@ -617,6 +647,7 @@ function renderizarHabilidades(valor) {
     return habilidades.map((h) => `<span class="skill-chip">${escaparHtml(h)}</span>`).join("");
 }
 
+// Faz o parse defensivo do campo de habilidades recebido do backend.
 function parsearHabilidades(valor) {
     if (!valor) {
         return [];
@@ -629,6 +660,7 @@ function parsearHabilidades(valor) {
     }
 }
 
+// Gera a representacao visual da nota em estrelas.
 function renderizarEstrelas(nota) {
     const estrelas = [];
     for (let i = 1; i <= 5; i += 1) {
@@ -641,6 +673,7 @@ function renderizarEstrelas(nota) {
     return estrelas.join(" ");
 }
 
+// Traduz o status do acordo para a classe CSS correta.
 function obterClasseStatusAcordo(status) {
     const mapa = {
         aceita: "is-agreed",
@@ -651,6 +684,7 @@ function obterClasseStatusAcordo(status) {
     return mapa[status] || "is-agreed";
 }
 
+// Traduz o tipo tecnico do usuario para um rotulo legivel.
 function formatarTipoUsuario(tipo) {
     const mapa = {
         cliente: "Contratante",
@@ -661,6 +695,7 @@ function formatarTipoUsuario(tipo) {
     return mapa[tipo] || tipo || "-";
 }
 
+// Formata valores monetarios no padrao brasileiro.
 function formatarMoeda(valor) {
     const numero = Number(valor);
     if (Number.isNaN(numero) || numero <= 0) {
@@ -669,10 +704,12 @@ function formatarMoeda(valor) {
     return new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(numero);
 }
 
+// Garante um fallback quando a categoria nao vier preenchida.
 function formatarCategoria(categoria) {
     return categoria || "Sem categoria";
 }
 
+// Faz parse de varios formatos de data usados no projeto e devolve texto amigavel.
 function formatarData(data) {
     if (!data) {
         return "";
@@ -731,6 +768,7 @@ function formatarData(data) {
     });
 }
 
+// Escapa caracteres especiais antes de injetar texto em HTML.
 function escaparHtml(valor) {
     const elemento = document.createElement("span");
     elemento.textContent = valor ?? "";
