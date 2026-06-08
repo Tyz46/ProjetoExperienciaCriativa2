@@ -29,6 +29,7 @@ async function cadastrar() {
     const tipo = document.getElementById("tipo").value;
     const valor = document.getElementById("valor").value;
     const localidade = document.getElementById("localidade").value.trim();
+    const pedro = document.getElementById("pedro").value.trim();
     const fotos = document.getElementById("fotos").files;
 
     if (!nome || !descricao || !tipo || !valor || !localidade) {
@@ -42,6 +43,7 @@ async function cadastrar() {
     fd.append("tipo", tipo);
     fd.append("valor", valor);
     fd.append("localidade", localidade);
+    fd.append("pedro", pedro);
     adicionarFotos(fd, fotos);
 
     try {

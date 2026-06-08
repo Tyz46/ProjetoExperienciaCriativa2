@@ -78,6 +78,9 @@ CREATE TABLE servico (
 
     localidade VARCHAR(100) NOT NULL,
 
+    -- Comentado: campo adicional de texto pedro para ser salvo e exibido no card
+    pedro VARCHAR(255) NULL,
+
     foto VARCHAR(255) NULL,
 
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP,

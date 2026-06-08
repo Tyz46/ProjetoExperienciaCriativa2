@@ -20,6 +20,7 @@ $descricao = trim($_POST['descricao'] ?? '');
 $categoria = trim($_POST['tipo'] ?? '');
 $valor = trim($_POST['valor'] ?? '');
 $localidade = trim($_POST['localidade'] ?? '');
+$pedro = trim($_POST['pedro'] ?? '');
 $idUsuario = idUsuarioLogado();
 
 // Valida o minimo necessario para publicar um chamado.
@@ -33,8 +34,8 @@ if ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $
 
     $sql = "
         INSERT INTO servico (
-            id_prestador, titulo, descricao, categoria, valor, origem, status, localidade, foto
-        ) VALUES (?, ?, ?, ?, ?, 'cliente', ?, ?, ?)
+            id_prestador, titulo, descricao, categoria, valor, origem, status, localidade, pedro, foto
+        ) VALUES (?, ?, ?, ?, ?, 'cliente', ?, ?, ?, ?)
     ";
     $stmt = $conexao->prepare($sql);
 
@@ -42,7 +43,7 @@ if ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $
         $retorno['mensagem'] = 'Erro na estrutura do banco: ' . $conexao->error;
     } else {
         $stmt->bind_param(
-            'isssdsss',
+            'issdsssss',
             $idUsuario,
             $nome,
             $descricao,
@@ -50,6 +51,7 @@ if ($nome === '' || $descricao === '' || $categoria === '' || $valor === '' || $
             $valor,
             $status,
             $localidade,
+            $pedro,
             $foto
         );
 
