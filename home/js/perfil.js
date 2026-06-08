@@ -2,6 +2,7 @@
 let dadosPerfil = null;
 let notificacoesPerfil = [];
 let modalAvaliarInstancia = null;
+let perfilEdicaoAnterior = null;
 
 document.addEventListener("DOMContentLoaded", async () => {
     await valida_sessao();
@@ -81,6 +82,7 @@ function renderizarPerfil(dados) {
     renderizarAvaliacoes(dados.avaliacoes, usuario.nome);
     configurarAbaAcordos(ehProprio);
     configurarAbaNotificacoes(ehProprio);
+    configurarBotoesEdicao(ehProprio);
 
     const botaoVoltar = document.getElementById("perfil_voltar");
     if (ehProprio) {
@@ -147,6 +149,146 @@ function renderizarCamposInformacao(usuario, perfilPrestador, ehProprio) {
         campoLocalidade.classList.add("d-none");
         campoDescricao.classList.add("d-none");
         resumoProfissao.classList.add("d-none");
+    }
+}
+
+function configurarBotoesEdicao(ehProprio) {
+    const container = document.getElementById("perfil_acoes_container");
+    const botaoEditar = document.getElementById("btn_editar_perfil");
+    const botaoSalvar = document.getElementById("btn_salvar_perfil");
+    const botaoCancelar = document.getElementById("btn_cancelar_perfil");
+
+    if (!container || !botaoEditar || !botaoSalvar || !botaoCancelar) {
+        return;
+    }
+
+    if (!ehProprio) {
+        container.classList.add("d-none");
+        return;
+    }
+
+    container.classList.remove("d-none");
+    botaoEditar.classList.remove("d-none");
+    botaoSalvar.classList.add("d-none");
+    botaoCancelar.classList.add("d-none");
+    botaoEditar.onclick = habilitarEdicaoPerfil;
+    botaoSalvar.onclick = salvarAlteracoesPerfil;
+    botaoCancelar.onclick = cancelarEdicaoPerfil;
+}
+
+function habilitarEdicaoPerfil() {
+    if (!dadosPerfil?.eh_proprio_perfil) {
+        return;
+    }
+
+    perfilEdicaoAnterior = {
+        nome: document.getElementById("perfil_nome").value,
+        usuario: document.getElementById("perfil_usuario").value,
+        email: document.getElementById("perfil_email").value,
+        telefone: document.getElementById("perfil_telefone").value,
+        descricao: document.getElementById("perfil_descricao").value,
+        profissao: document.getElementById("perfil_profissao").value,
+        localidade: document.getElementById("perfil_localidade").value,
+    };
+
+    setCamposEdicao(true);
+    document.getElementById("btn_editar_perfil").classList.add("d-none");
+    document.getElementById("btn_salvar_perfil").classList.remove("d-none");
+    document.getElementById("btn_cancelar_perfil").classList.remove("d-none");
+}
+
+function cancelarEdicaoPerfil() {
+    if (!perfilEdicaoAnterior) {
+        return;
+    }
+
+    document.getElementById("perfil_nome").value = perfilEdicaoAnterior.nome;
+    document.getElementById("perfil_usuario").value = perfilEdicaoAnterior.usuario;
+    document.getElementById("perfil_email").value = perfilEdicaoAnterior.email;
+    document.getElementById("perfil_telefone").value = perfilEdicaoAnterior.telefone;
+    document.getElementById("perfil_descricao").value = perfilEdicaoAnterior.descricao;
+    document.getElementById("perfil_profissao").value = perfilEdicaoAnterior.profissao;
+    document.getElementById("perfil_localidade").value = perfilEdicaoAnterior.localidade;
+
+    setCamposEdicao(false);
+    document.getElementById("btn_editar_perfil").classList.remove("d-none");
+    document.getElementById("btn_salvar_perfil").classList.add("d-none");
+    document.getElementById("btn_cancelar_perfil").classList.add("d-none");
+}
+
+function setCamposEdicao(habilitar) {
+    const ids = [
+        "perfil_nome",
+        "perfil_usuario",
+        "perfil_email",
+        "perfil_telefone",
+        "perfil_descricao",
+        "perfil_profissao",
+        "perfil_localidade",
+    ];
+
+    ids.forEach((campoId) => {
+        const campo = document.getElementById(campoId);
+        if (!campo) {
+            return;
+        }
+        campo.readOnly = !habilitar;
+        if (habilitar) {
+            campo.classList.add("form-control");
+        }
+    });
+
+    const tipoCampo = document.getElementById("perfil_tipo");
+    if (tipoCampo) {
+        tipoCampo.readOnly = true;
+    }
+}
+
+async function salvarAlteracoesPerfil() {
+    if (!dadosPerfil?.eh_proprio_perfil) {
+        return;
+    }
+
+    const usuario = dadosPerfil.usuario;
+    const nome = document.getElementById("perfil_nome").value.trim();
+    const username = document.getElementById("perfil_usuario").value.trim();
+    const email = document.getElementById("perfil_email").value.trim();
+    const telefone = document.getElementById("perfil_telefone").value.trim();
+    const descricao = document.getElementById("perfil_descricao").value.trim();
+    const profissao = document.getElementById("perfil_profissao").value.trim();
+    const localidade = document.getElementById("perfil_localidade").value.trim();
+
+    const fd = new FormData();
+    fd.append("nome", nome);
+    fd.append("usuario", username);
+    fd.append("email", email);
+    fd.append("telefone", telefone);
+    fd.append("descricao", descricao);
+    fd.append("profissao", profissao);
+    fd.append("localidade", localidade);
+
+    try {
+        const retorno = await fetch(`../php/usuario_alterar.php?id=${encodeURIComponent(usuario.id)}`, {
+            method: "POST",
+            body: fd,
+            credentials: "same-origin",
+        });
+        const resposta = await retorno.json();
+
+        if (resposta.status !== "ok") {
+            alert(resposta.mensagem || "Nao foi possivel salvar as alteracoes.");
+            return;
+        }
+
+        alert("Perfil alterado com sucesso.");
+        setCamposEdicao(false);
+        document.getElementById("btn_editar_perfil").classList.remove("d-none");
+        document.getElementById("btn_salvar_perfil").classList.add("d-none");
+        document.getElementById("btn_cancelar_perfil").classList.add("d-none");
+        await carregarPerfil();
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro ao salvar o perfil. Tente novamente.");
     }
 }
 
