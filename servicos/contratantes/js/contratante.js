@@ -226,8 +226,7 @@ function renderizarCardChamado(objeto) {
                     <p class="card-text text-muted service-description-clamp mb-3">${escaparHtml(objeto.descricao || "Sem descricao cadastrada.")}</p>
 
                     <p class="service-meta mb-4">
-                        <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Nao informada")}</span>
-                        ${objeto.pedro ? `<br><span><i class="bi bi-chat-square-text text-info me-1"></i>${escaparHtml(objeto.pedro)}</span>` : ''}
+                        <span><i class="bi bi-geo-alt text-success me-1"></i>${escaparHtml(objeto.localidade || "Não informada")}</span>
                     </p>
 
                     <div class="service-card-actions mt-auto">
@@ -298,9 +297,8 @@ function abrirDetalheChamado(id) {
     );
     document.getElementById("modalDetalheChamadoValor").textContent = formatarMoeda(servico.valor);
     document.getElementById("modalDetalheChamadoCategoria").textContent = formatarCategoria(servico.tipo);
-    document.getElementById("modalDetalheChamadoLocalidade").textContent = servico.localidade || "Nao informada";
-    document.getElementById("modalDetalheChamadoPedro").textContent = servico.pedro || "Nao informada";
-    document.getElementById("modalDetalheChamadoDescricao").textContent = servico.descricao || "Sem descricao cadastrada.";
+    document.getElementById("modalDetalheChamadoLocalidade").textContent = servico.localidade || "Não informada";
+    document.getElementById("modalDetalheChamadoDescricao").textContent = servico.descricao || "Sem descrição cadastrada.";
 }
 
 // Template de estado vazio da listagem.

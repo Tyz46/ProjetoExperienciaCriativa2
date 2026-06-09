@@ -13,9 +13,6 @@ CREATE TABLE usuario (
     username VARCHAR(50) NOT NULL UNIQUE,
     senha_hash VARCHAR(255) NOT NULL,
 
-    -- Comentado: campo adicional de texto pedro para ser salvo e exibido no site
-    -- pedro VARCHAR(255) NULL,
-
     tipo ENUM(
         'cliente',
         'prestador',
@@ -77,9 +74,6 @@ CREATE TABLE servico (
     ) DEFAULT 'ativo',
 
     localidade VARCHAR(100) NOT NULL,
-
-    -- Comentado: campo adicional de texto pedro para ser salvo e exibido no card
-    pedro VARCHAR(255) NULL,
 
     foto VARCHAR(255) NULL,
 

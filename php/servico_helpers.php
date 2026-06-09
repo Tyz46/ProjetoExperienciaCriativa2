@@ -20,7 +20,6 @@ function sqlSelectServicoComUsuario(): string
             s.categoria AS tipo,
             s.valor,
             s.localidade,
-            s.pedro,
             s.foto,
             s.origem,
             s.status,

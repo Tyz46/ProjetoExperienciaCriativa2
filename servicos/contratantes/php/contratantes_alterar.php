@@ -20,7 +20,6 @@ $descricao = trim($_POST['descricao'] ?? '');
 $categoria = trim($_POST['tipo'] ?? '');
 $valor = trim($_POST['valor'] ?? '');
 $localidade = trim($_POST['localidade'] ?? '');
-$pedro = trim($_POST['pedro'] ?? '');
 $idUsuario = idUsuarioLogado();
 $admin = ehAdmin();
 
@@ -57,7 +56,7 @@ if ($id <= 0) {
 
     $sql = "
         UPDATE servico
-        SET titulo = ?, descricao = ?, categoria = ?, valor = ?, localidade = ?, pedro = ?
+        SET titulo = ?, descricao = ?, categoria = ?, valor = ?, localidade = ?
         WHERE id = ? AND origem = 'cliente'
     ";
     if (!$admin) {
@@ -69,9 +68,9 @@ if ($id <= 0) {
         $retorno['mensagem'] = 'Erro na estrutura do banco: ' . $conexao->error;
     } else {
         if ($admin) {
-            $stmt->bind_param('sssdssi', $nome, $descricao, $categoria, $valor, $localidade, $pedro, $id);
+            $stmt->bind_param('sssdsi', $nome, $descricao, $categoria, $valor, $localidade, $id);
         } else {
-            $stmt->bind_param('sssdsiii', $nome, $descricao, $categoria, $valor, $localidade, $pedro, $id, $idUsuario);
+            $stmt->bind_param('sssdsii', $nome, $descricao, $categoria, $valor, $localidade, $id, $idUsuario);
         }
 
         if ($stmt->execute()) {

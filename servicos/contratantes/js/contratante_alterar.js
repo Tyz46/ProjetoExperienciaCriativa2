@@ -45,7 +45,6 @@ async function buscarDados(id) {
         document.getElementById("tipo").value = reg.tipo ?? "";
         document.getElementById("valor").value = reg.valor ?? "";
         document.getElementById("localidade").value = reg.localidade ?? "";
-        document.getElementById("pedro").value = reg.pedro ?? "";
     } else {
         alert("Erro! " + resposta.mensagem);
         window.location.href = "../html/contratante.html";
@@ -72,7 +71,6 @@ async function alterar() {
     const tipo = document.getElementById("tipo").value;
     const valor = document.getElementById("valor").value;
     const localidade = document.getElementById("localidade").value.trim();
-    const pedro = document.getElementById("pedro").value.trim();
     const id = document.getElementById("id").value;
 
     if (!nome || !descricao || !tipo || !valor || !localidade) {
@@ -86,7 +84,6 @@ async function alterar() {
     fd.append("tipo", tipo);
     fd.append("valor", valor);
     fd.append("localidade", localidade);
-    fd.append("pedro", pedro);
 
     try {
         const retorno = await fetch("../php/contratantes_alterar.php?id=" + id, {
