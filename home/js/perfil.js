@@ -155,10 +155,11 @@ function renderizarCamposInformacao(usuario, perfilPrestador, ehProprio) {
 function configurarBotoesEdicao(ehProprio) {
     const container = document.getElementById("perfil_acoes_container");
     const botaoEditar = document.getElementById("btn_editar_perfil");
+    const botaoExcluir = document.getElementById("btn_excluir_perfil");
     const botaoSalvar = document.getElementById("btn_salvar_perfil");
     const botaoCancelar = document.getElementById("btn_cancelar_perfil");
 
-    if (!container || !botaoEditar || !botaoSalvar || !botaoCancelar) {
+    if (!container || !botaoEditar || !botaoExcluir || !botaoSalvar || !botaoCancelar) {
         return;
     }
 
@@ -169,11 +170,44 @@ function configurarBotoesEdicao(ehProprio) {
 
     container.classList.remove("d-none");
     botaoEditar.classList.remove("d-none");
+    botaoExcluir.classList.remove("d-none");
     botaoSalvar.classList.add("d-none");
     botaoCancelar.classList.add("d-none");
     botaoEditar.onclick = habilitarEdicaoPerfil;
     botaoSalvar.onclick = salvarAlteracoesPerfil;
     botaoCancelar.onclick = cancelarEdicaoPerfil;
+    botaoExcluir.onclick = excluirPerfil;
+}
+
+async function excluirPerfil() {
+    if (!dadosPerfil?.eh_proprio_perfil) {
+        return;
+    }
+
+    const confirmar = confirm("Deseja realmente excluir seu perfil? Esta acao nao pode ser desfeita.");
+    if (!confirmar) {
+        return;
+    }
+
+    const usuario = dadosPerfil.usuario;
+    try {
+        const retorno = await fetch(`../php/usuario_excluir.php?id=${encodeURIComponent(usuario.id)}`, {
+            method: "GET",
+            credentials: "same-origin",
+        });
+        const resposta = await retorno.json();
+
+        if (resposta.status !== "ok") {
+            alert(resposta.mensagem || "Nao foi possivel excluir o perfil.");
+            return;
+        }
+
+        alert("Perfil excluido com sucesso.");
+        window.location.href = "../html/login.html";
+    } catch (erro) {
+        console.error(erro);
+        alert("Erro ao excluir o perfil. Tente novamente.");
+    }
 }
 
 function habilitarEdicaoPerfil() {
